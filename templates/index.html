@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>تحليل نتائج الاختبارات — وزارة التعليم</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&family=El+Messiri:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style id="pageOrient">@page{size:A4 portrait;margin:0 0 8mm 0}</style>
 <style>
@@ -129,7 +129,7 @@
   /* ---------- الشهادات (A4 عرضي) ---------- */
   .cert{width:297mm;height:210mm;margin:0 auto 18px;padding:7mm;box-shadow:0 2px 14px rgba(0,0,0,.08);
         page-break-after:always;break-after:page;position:relative;overflow:hidden;
-        background:var(--cream);font-family:"IBM Plex Sans Arabic",sans-serif}
+        background:var(--cream);font-family:"El Messiri","IBM Plex Sans Arabic",sans-serif}
   .cert:last-child{page-break-after:auto;break-after:auto}
   .cert[data-theme="purple"]{--c1:#5B3E8E;--c2:#9B7EC8;--c3:#C9A227;--pink:#D0578A;--soft:#EFE7F8;--cream:var(--sheet)}
   .cert[data-theme="teal"]{--c1:#0F6E62;--c2:#4FBFAE;--c3:#C9A227;--pink:#C2185B;--soft:#E1F3EF;--cream:var(--sheet)}
@@ -146,18 +146,20 @@
              color:var(--c1);font-size:.98rem;line-height:1.7}
   .cert .org img{height:20mm;display:block;margin:0 0 2mm auto;mix-blend-mode:multiply}
   .cert .org .orgfallback{display:block;font-size:1.05rem}
-  .cert .title{font-family:Amiri,serif;font-size:4.2rem;font-weight:700;color:var(--c1);margin:9mm 0 0;line-height:1.15}
+  .cert .title{font-family:"Aref Ruqaa",Amiri,serif;font-size:3.9rem;font-weight:700;color:var(--c1);margin:9mm 0 0;line-height:1.15}
   .cert .title .fl{display:inline-block;vertical-align:middle;margin:0 6mm}
   .cert .rule{margin:1mm auto 6mm}
-  .cert .body{font-size:1.3rem;color:#2B2233;font-weight:500;max-width:172mm;margin:0 auto}
-  .cert .body p{margin:0 0 7mm}
-  .cert .enddiv{margin:2mm 0 0}
-  .cert .name{font-family:Amiri,serif;font-size:1.95rem;font-weight:700;color:var(--c1);
+  .cert .mid{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center}
+  .cert .body{font-size:1.32rem;color:#2B2233;font-weight:500;max-width:174mm;margin:0 auto}
+  .cert .body p{margin:0 0 8mm}
+  .cert .body p:last-child{margin-bottom:0}
+  .cert .enddiv{margin:9mm 0 0}
+  .cert .name{font-family:"Aref Ruqaa",Amiri,serif;font-size:1.9rem;font-weight:700;color:var(--c1);
               border-bottom:2px dotted var(--c2);padding:0 6mm 1mm;margin:0 2mm}
   .cert .cls{color:var(--c2);font-weight:600;font-size:.95rem}
   .cert .pct{color:var(--c1);font-weight:700}
   .cert .teacher{color:var(--pink);font-weight:600;font-size:1.1rem;margin:9mm 0 0!important}
-  .cert .sig{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;
+  .cert .sig{margin-top:6mm;display:flex;justify-content:space-between;align-items:flex-end;
              font-weight:700;color:var(--c1);font-size:1.04rem;padding:0 6mm 2mm}
   .cert .sig .date{color:var(--c2);font-weight:600}
   #printArea{display:none}
@@ -494,7 +496,8 @@ function certDecor(){
     <rect x="0" y="0" width="150" height="200" rx="20" fill="var(--c2)" opacity=".95"/>
     <rect x="10" y="10" width="130" height="180" rx="14" fill="var(--soft)"/>
     <rect x="22" y="22" width="106" height="42" rx="8" fill="#E8EFD6" stroke="var(--c1)" stroke-width="2"/>
-    <text x="118" y="53" text-anchor="end" font-size="24" font-weight="700" fill="var(--c1)" font-family="monospace">123</text>
+    <text x="118" y="53" text-anchor="end" font-size="24" font-weight="700" fill="var(--c1)"
+      font-family="monospace" style="direction:ltr;unicode-bidi:isolate">123</text>
     ${[0,1,2,3].map(r=>[0,1,2,3].map(c=>{
       const col=['var(--pink)','var(--c3)','var(--c2)','#F0B8D0'][(r+c)%4];
       return `<rect x="${22+c*27}" y="${76+r*27}" width="22" height="22" rx="6" fill="${col}" opacity=".9"/>`;}).join('')).join('')}
@@ -554,10 +557,10 @@ function certDecor(){
 
   // تُوزَّع الزخارف على الأطراف فقط؛ المنطقة الوسطى (x: 250-1140, y: 250-720) محجوزة للنص
   const sprinkles = [
-    star(300,132,11,'var(--c3)'), star(1108,96,9,'var(--c2)',.8), star(196,232,8,'var(--c3)',.8),
-    star(1318,214,10,'var(--c3)',.9), star(1332,470,9,'var(--c2)',.7), star(148,830,9,'var(--c3)',.6),
+    star(300,132,11,'var(--c3)'), star(392,84,9,'var(--c2)',.8), star(196,232,8,'var(--c3)',.8),
+    star(1336,392,10,'var(--c3)',.9), star(1332,470,9,'var(--c2)',.7), star(148,830,9,'var(--c3)',.6),
     star(1076,790,9,'var(--c2)',.6), star(1330,690,8,'var(--c3)',.7),
-    heart(1330,330,12,'#F0A8C4',.9), heart(1272,150,10,'var(--c2)',.7),
+    heart(1338,330,12,'#F0A8C4',.9), heart(238,318,10,'var(--c2)',.7),
     heart(120,890,12,'var(--c2)',.7), heart(232,760,10,'#F0A8C4',.55),
     dot(258,178,5,'var(--c2)'), dot(1150,700,5,'var(--c3)'), dot(152,470,5,'var(--pink)',.6),
     dot(1340,590,5,'var(--c2)',.6), dot(1032,900,4,'var(--c3)',.7),
@@ -619,6 +622,7 @@ function certHTML(s, m){
       </div>
       <div class="title">${titleFlourish('l')}شكر وتقدير${titleFlourish('r')}</div>
       ${certRule()}
+      <div class="mid">
       <div class="body">
         <p>${she ? 'يسر معلمة' : 'يسر معلم'} ${esc(subject)} أن ${she ? 'تشكر الطالبة الرائعة' : 'يشكر الطالب الرائع'}
            <span class="name">${esc(s.name)}</span><span class="cls">${esc(s.class) ? `(${esc(s.class)})` : ''}</span></p>
@@ -627,6 +631,7 @@ function certHTML(s, m){
         <p class="teacher">مع حبي وتقديري لكم/ ${she ? 'معلمتكم' : 'معلمكم'} ${esc(m.teacher || '................')}</p>
       </div>
       ${endDivider()}
+      </div>
       <div class="sig">
         <span class="date">${m.date ? 'التاريخ: ' + esc(m.date) : ''}</span>
         <span>${she ? 'مديرة' : 'مدير'} المدرسة/ ${esc(m.principal || '................')}</span>
