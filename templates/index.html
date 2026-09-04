@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تحليل نتائج الاختبارات</title>
+<title>تحليل نتائج الاختبارات — وزارة التعليم</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -126,22 +126,30 @@
   .gap-pos{color:var(--teal)}.gap-neg{color:var(--red)}
 
   /* ---------- الشهادات (A4 عرضي) ---------- */
-  .cert{width:297mm;height:210mm;background:#fff;margin:0 auto 18px;padding:12mm;box-shadow:0 2px 14px rgba(0,0,0,.08);page-break-after:always;break-after:page;position:relative}
+  .cert{width:297mm;height:210mm;margin:0 auto 18px;padding:7mm;box-shadow:0 2px 14px rgba(0,0,0,.08);
+        page-break-after:always;break-after:page;position:relative;overflow:hidden;
+        background:var(--cream);font-family:"IBM Plex Sans Arabic",sans-serif}
   .cert:last-child{page-break-after:auto;break-after:auto}
-  .cert .frame{border:3px solid var(--teal);height:100%;padding:6px;position:relative}
-  .cert .frame::before{content:"";position:absolute;inset:6px;border:1.5px solid var(--gold);pointer-events:none}
-  .cert .inner{height:100%;display:flex;flex-direction:column;padding:10mm 14mm;text-align:center;position:relative;z-index:1}
-  .cert .rhead{margin-bottom:6px}
-  .cert .title{font-family:Amiri,serif;font-size:3rem;color:var(--teal-deep);margin:6px 0 0;font-weight:700}
-  .cert .sub{color:var(--gold);letter-spacing:.2em;font-size:.9rem;font-weight:600;margin-bottom:14px}
-  .cert .body{font-size:1.15rem;line-height:2}
-  .cert .name{font-family:Amiri,serif;font-size:2.4rem;color:var(--teal-deep);font-weight:700;margin:2px 0;border-bottom:2px solid var(--gold);display:inline-block;padding:0 30px 2px}
-  .cert .badge{position:absolute;left:18mm;top:60mm;width:74px;height:74px;border-radius:50%;background:var(--gold-soft);border:3px solid var(--gold);display:grid;place-items:center;font-weight:700;color:var(--teal-deep);font-size:.95rem;line-height:1.2;transform:rotate(-8deg)}
-  .cert .sigs{margin-top:auto;display:flex;justify-content:space-between;padding:0 20mm;font-weight:600}
-  .cert .sigs div{border-top:1px solid var(--ink);padding-top:6px;min-width:150px}
-  .cert .sigs small{display:block;color:var(--muted);font-weight:500}
-  .cert .date{position:absolute;bottom:14mm;left:0;right:0;text-align:center;color:var(--muted);font-size:.88rem}
-
+  .cert[data-theme="purple"]{--c1:#5B3E8E;--c2:#9B7EC8;--c3:#C9A227;--pink:#D0578A;--soft:#EFE7F8;--cream:#FDF8F0}
+  .cert[data-theme="teal"]{--c1:#0F6E62;--c2:#4FBFAE;--c3:#C9A227;--pink:#C2185B;--soft:#E1F3EF;--cream:#FBFCF8}
+  .cert[data-theme="rose"]{--c1:#A8386B;--c2:#E191B4;--c3:#C9A227;--pink:#8E5BA8;--soft:#FBE8F0;--cream:#FFF9F6}
+  .cert .band-out{position:absolute;inset:0;border:9mm solid var(--c2);border-radius:10mm;opacity:.9}
+  .cert .band-in{position:absolute;inset:8mm;border:1.2mm solid var(--c3);border-radius:5mm}
+  .cert .band-dash{position:absolute;inset:11mm;border:.5mm dashed var(--c2);border-radius:4mm;opacity:.75}
+  .cert .deco{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .cert .inner{position:absolute;inset:14mm 18mm 12mm;display:flex;flex-direction:column;text-align:center;z-index:2}
+  .cert .org{position:absolute;top:0;right:0;text-align:right;font-weight:700;color:var(--c1);font-size:1.02rem;line-height:1.8}
+  .cert .title{font-family:Amiri,serif;font-size:4.6rem;font-weight:700;color:var(--c1);margin:6mm 0 0;line-height:1.1}
+  .cert .title .fl{display:inline-block;vertical-align:middle;margin:0 6mm}
+  .cert .rule{margin:1mm auto 6mm}
+  .cert .body{font-size:1.32rem;line-height:2.5;color:#2B2233;font-weight:500;padding:0 34mm}
+  .cert .name{font-family:Amiri,serif;font-size:2rem;font-weight:700;color:var(--c1);
+              border-bottom:2px dotted var(--c2);padding:0 10mm 1mm}
+  .cert .pct{color:var(--c1);font-weight:700}
+  .cert .teacher{color:var(--pink);font-weight:600;font-size:1.1rem;margin-top:5mm}
+  .cert .sig{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;
+             font-weight:700;color:var(--c1);font-size:1.02rem;padding:0 4mm}
+  .cert .sig .date{color:var(--c2);font-weight:600}
   #printArea{display:none}
   @media print{
     html,body{background:#fff;margin:0;padding:0}
@@ -167,7 +175,7 @@
 <header class="app">
   <div class="wrap rhead">
     <div class="org">نظام تحليل نتائج الاختبارات<span>تحليل، ترتيب، رسوم بيانية، تقارير PDF، وشهادات تفوق</span></div>
-    <div class="logo"><img src="static/LOGO.png" alt="" onerror="this.remove()">
+    <div class="logo"><img src="/static/logo.png" alt="" onerror="this.remove()"><div class="wm">وزارة التعليم<small>Ministry of Education</small></div></div>
     <div class="exam">نموذج تحليل النتائج</div>
   </div>
 </header>
@@ -279,7 +287,17 @@
     <section class="panel">
       <h2><span>شهادات التفوق</span></h2>
       <p class="lead" id="certLead"></p>
+      <div class="grid" style="margin-bottom:6px">
+        <div><label>لون الشهادة</label>
+          <select id="certTheme">
+            <option value="purple">بنفسجي</option>
+            <option value="rose">وردي</option>
+            <option value="teal">تركوازي</option>
+          </select>
+        </div>
+      </div>
       <div class="actions" style="margin-top:0">
+        <label class="check"><input type="checkbox" id="certPct"> إظهار النسبة في نص الشهادة</label>
         <button class="btn-gold" id="certPrint">طباعة الشهادات</button>
         <button class="btn-ghost" id="certToggle">معاينة الشهادات</button>
         <span class="note" id="certStatus"></span>
@@ -447,26 +465,123 @@ function renderReport(){
 
 /* ---------------- الشهادات ---------------- */
 function excellentStudents(){ return DATA.students.filter(s => s.level === DATA.levels[0]); }
+function certDecor(){
+  // زخارف الشهادة: رايات، آلة حاسبة، كأس، كتب، دفتر وأقلام، نجوم ورموز حسابية
+  const star = (x,y,r,f,o=1) => `<path transform="translate(${x} ${y}) scale(${r/10})" opacity="${o}" fill="${f}"
+    d="M0-10 2.9-3.5 10-2.7 4.7 2.3 6.1 9.4 0 5.8-6.1 9.4-4.7 2.3-10-2.7-2.9-3.5Z"/>`;
+  const heart = (x,y,r,f,o=1) => `<path transform="translate(${x} ${y}) scale(${r/10})" opacity="${o}" fill="${f}"
+    d="M0 8C-9 1-10-5-6-8-3-10 0-8 0-5 0-8 3-10 6-8 10-5 9 1 0 8Z"/>`;
+  const dot = (x,y,r,f,o=.8) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" opacity="${o}"/>`;
+  const bunting = `<g transform="translate(56 40) scale(1.25)">
+    <path d="M0 0C60 46 150 60 232 26" fill="none" stroke="var(--c1)" stroke-width="2.4" opacity=".7"/>
+    ${[0,1,2,3,4].map(i => {
+      const t=i/4, x=8+t*216, y=6+Math.sin(t*3.1)*40-t*4, c=['var(--c2)','var(--pink)','var(--c3)','var(--c2)','var(--pink)'][i];
+      return `<path d="M${x-17} ${y} L${x+17} ${y+6} L${x-2} ${y+42} Z" fill="${c}" opacity=".85"/>`;}).join('')}
+  </g>`;
+
+  const calculator = `<g transform="translate(1000 250) rotate(9)">
+    <rect x="0" y="0" width="150" height="200" rx="20" fill="var(--c2)" opacity=".95"/>
+    <rect x="10" y="10" width="130" height="180" rx="14" fill="var(--soft)"/>
+    <rect x="22" y="22" width="106" height="42" rx="8" fill="#E8EFD6" stroke="var(--c1)" stroke-width="2"/>
+    <text x="118" y="53" text-anchor="end" font-size="24" font-weight="700" fill="var(--c1)" font-family="monospace">123</text>
+    ${[0,1,2,3].map(r=>[0,1,2,3].map(c=>{
+      const col=['var(--pink)','var(--c3)','var(--c2)','#F0B8D0'][(r+c)%4];
+      return `<rect x="${22+c*27}" y="${76+r*27}" width="22" height="22" rx="6" fill="${col}" opacity=".9"/>`;}).join('')).join('')}
+  </g>`;
+
+  const trophy = `<g transform="translate(1010 610)">
+    <path d="M30 0h120v34c0 42-27 74-60 74S30 76 30 34Z" fill="var(--c3)"/>
+    <path d="M30 8H8c-8 0-12 8-8 16 8 20 22 30 34 32Z" fill="var(--c3)" opacity=".9"/>
+    <path d="M150 8h22c8 0 12 8 8 16-8 20-22 30-34 32Z" fill="var(--c3)" opacity=".9"/>
+    ${star(90,44,20,'var(--c1)',.75)}
+    <rect x="78" y="106" width="24" height="26" fill="var(--c3)" opacity=".85"/>
+    <rect x="52" y="130" width="76" height="16" rx="6" fill="var(--c3)"/>
+  </g>`;
+
+  const books = (x,y,titles) => `<g transform="translate(${x} ${y})">
+    ${titles.map((t,i) => `<g transform="translate(${i*7} ${i*-30})">
+      <rect x="0" y="0" width="230" height="30" rx="7" fill="${['var(--c2)','var(--pink)','var(--c3)'][i]}" opacity=".85"/>
+      <rect x="0" y="0" width="230" height="30" rx="7" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/>
+      <text x="115" y="21" text-anchor="middle" font-size="16" font-weight="700" fill="#fff"
+        font-family="IBM Plex Sans Arabic, sans-serif">${t}</text></g>`).join('')}
+  </g>`;
+
+  const notebook = `<g transform="translate(88 600) scale(1.18)">
+    <rect x="0" y="30" width="180" height="34" rx="8" fill="var(--pink)" opacity=".85"/>
+    <rect x="14" y="0" width="150" height="34" rx="8" fill="var(--c2)" opacity=".85"/>
+    <g transform="translate(30 -86)">
+      <rect x="0" y="0" width="110" height="90" rx="10" fill="#fff" stroke="var(--c2)" stroke-width="3"/>
+      ${[0,1,2,3].map(i=>`<circle cx="10" cy="${16+i*20}" r="4" fill="var(--c2)"/>`).join('')}
+      <text x="62" y="42" text-anchor="middle" font-size="20" font-weight="700" fill="var(--c1)">Math</text>
+      ${heart(62,60,11,'var(--pink)')}
+    </g>
+    <g transform="translate(140 -104)">
+      <rect x="0" y="44" width="54" height="50" rx="8" fill="var(--c2)" opacity=".9"/>
+      ${heart(27,70,11,'#fff',.85)}
+      ${[0,1,2].map(i=>`<g transform="translate(${8+i*16} ${8-i*6})">
+        <rect x="0" y="0" width="10" height="46" rx="3" fill="${['var(--pink)','var(--c3)','var(--c1)'][i]}"/>
+        <path d="M0 0 5-12 10 0Z" fill="#F3D9B0"/></g>`).join('')}
+    </g>
+  </g>`;
+
+  const symbols = `<g fill="var(--c2)" opacity=".55" font-size="34" font-weight="700" font-family="serif">
+    <text x="150" y="330">+</text><text x="120" y="405">÷</text><text x="165" y="470">×</text></g>`;
+
+  const sprinkles = [
+    star(300,150,11,'var(--c3)'), star(1180,290,10,'var(--c3)',.9), star(1090,120,9,'var(--c2)',.8),
+    star(255,215,8,'var(--c3)',.8), star(940,600,10,'var(--c3)',.85), star(1290,470,9,'var(--c2)',.7),
+    heart(1215,300,12,'#F0A8C4',.9), heart(1265,175,10,'var(--c2)',.7), heart(120,880,12,'var(--c2)',.7),
+    heart(905,470,10,'var(--pink)',.6),
+    dot(330,255,5,'var(--c2)'), dot(1140,660,5,'var(--c3)'), dot(200,545,5,'var(--pink)',.6),
+    dot(1310,620,5,'var(--c2)',.6), dot(150,760,4,'var(--c3)',.7),
+    star(1330,700,8,'var(--c3)',.7), heart(330,690,10,'#F0A8C4',.6),
+    star(960,760,9,'var(--c2)',.6), heart(1330,880,11,'var(--c2)',.5),
+    star(215,700,9,'var(--c3)',.6),
+  ].join('');
+
+  return `<svg class="deco" viewBox="0 0 1400 990" preserveAspectRatio="none">
+    ${bunting}${calculator}${trophy}${books(1000,846,['النجاح','التميز','الرياضيات'])}${notebook}${symbols}${sprinkles}
+  </svg>`;
+}
+function titleFlourish(dir){
+  return `<svg class="fl" width="86" height="46" viewBox="0 0 86 46" fill="none"
+    stroke="var(--c2)" stroke-width="2.4" stroke-linecap="round" ${dir === 'l' ? '' : 'transform="scale(-1,1)"'}>
+    <path d="M84 24C68 6 52 6 44 18c-6 9 2 18 10 14 9-4 5-20-10-22C26 8 12 16 4 30"/>
+    <path d="M28 40c8-4 16-4 24 0" opacity=".7"/></svg>`;
+}
+function certRule(){
+  return `<svg class="rule" width="360" height="26" viewBox="0 0 360 26" fill="none">
+    <path d="M8 14h120M232 14h120" stroke="var(--c3)" stroke-width="2" stroke-linecap="round"/>
+    <path d="M128 14c14-12 24 8 38 0M194 14c14-8 24 12 38 0" stroke="var(--c2)" stroke-width="2.2" stroke-linecap="round"/>
+    <path transform="translate(180 13) scale(1.1)" fill="var(--c1)"
+      d="M0 8C-9 1-10-5-6-8-3-10 0-8 0-5 0-8 3-10 6-8 10-5 9 1 0 8Z"/></svg>`;
+}
 function certHTML(s, m){
-  const she = m.female;
-  return `<div class="cert"><div class="frame"><div class="inner">
-    ${reportHead(m).split('<div class="band">')[0]}
-    <div class="title">شهادة تفوق</div>
-    <div class="sub">CERTIFICATE OF EXCELLENCE</div>
-    <div class="body">
-      ${she ? 'تشهد' : 'يشهد'} ${esc(m.school || 'إدارة المدرسة')} بأن ${m.student}<br>
-      <span class="name">${esc(s.name)}</span><br>
-      ${she ? 'قد حصلت' : 'قد حصل'} على تقدير <b style="color:var(--teal-deep)">ممتاز</b> في ${esc(m.exam || 'اختبار')} لمادة ${esc(m.subject)}
-      ${m.grade ? `للصف ${esc(m.grade)}` : ''} (${esc(s.class)})${m.term !== '—' ? ` — ${esc(m.term)}` : ''}<br>
-      بنسبة <b>${fmt(s.pct)}٪</b>، ${she ? 'متمنين لها' : 'متمنين له'} دوام التفوق والنجاح.
+  const she = m.female, theme = $('certTheme').value, showPct = $('certPct').checked;
+  return `<div class="cert" data-theme="${theme}">
+    <div class="band-out"></div><div class="band-in"></div><div class="band-dash"></div>
+    ${certDecor()}
+    <div class="inner">
+      <div class="org">وزارة التعليم<br>${esc(m.admin)}<br>${esc(m.school || '')}</div>
+      <div class="title">${titleFlourish('l')}شكر وتقدير${titleFlourish('r')}</div>
+      ${certRule()}
+      <div class="body">
+        ${she ? 'يسر معلمة' : 'يسر معلم'} ${esc(m.subject)} أن ${she ? 'تشكر' : 'يشكر'}
+        ${she ? 'الطالبة الرائعة' : 'الطالب الرائع'}
+        <span class="name">${esc(s.name)}</span>
+        ${esc(s.class) ? `<small>(${esc(s.class)})</small>` : ''}<br>
+        ${she ? 'وأسرتها الكريمة على تفوقها' : 'وأسرته الكريمة على تفوقه'}
+        في ${esc(m.exam || 'اختبار')} ${m.exam ? '' : 'مادة'} ${esc(m.subject)}
+        ${showPct ? `<span class="pct">بنسبة ${fmt(s.pct)}٪</span>` : ''}<br>
+        مع تمنياتي ${she ? 'لها' : 'له'} بالاستمرار في طريق التفوق والنجاح.
+      </div>
+      <div class="teacher">مع حبي وتقديري لكم/ ${she ? 'معلمتكم' : 'معلمكم'} ${esc(m.teacher || '................')}</div>
+      <div class="sig">
+        <span class="date">${m.date ? 'التاريخ: ' + esc(m.date) : ''}</span>
+        <span>${she ? 'مديرة' : 'مدير'} المدرسة/ ${esc(m.principal || '................')}</span>
+      </div>
     </div>
-    <div class="badge">ممتاز<br>${fmt(s.pct)}٪</div>
-    <div class="sigs">
-      <div>${esc(m.teacher || '')}<small>${she ? 'معلمة' : 'معلم'} المادة</small></div>
-      <div>${esc(m.principal || '')}<small>${she ? 'مديرة' : 'مدير'} المدرسة</small></div>
-    </div>
-    ${m.date ? `<div class="date">التاريخ: ${esc(m.date)}</div>` : ''}
-  </div></div></div>`;
+  </div>`;
 }
 function renderCerts(){
   const m = meta(), list = excellentStudents();
@@ -475,6 +590,7 @@ function renderCerts(){
     : 'لا يوجد حاصلون على تقدير ممتاز.';
   $('certs').innerHTML = list.map(s => certHTML(s, m)).join('');
 }
+['certTheme','certPct'].forEach(id => $(id).addEventListener('input', () => { if (DATA) renderCerts(); }));
 $('certToggle').onclick = () => {
   const w = $('certWrap'); w.classList.toggle('hidden');
   $('certToggle').textContent = w.classList.contains('hidden') ? 'معاينة الشهادات' : 'إخفاء المعاينة';
