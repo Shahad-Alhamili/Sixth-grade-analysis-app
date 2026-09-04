@@ -3,109 +3,190 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تحليل درجات الصف السادس</title>
+<title>تحليل نتائج الاختبارات — وزارة التعليم</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <style>
   :root{
-    --green:#0B5D3B; --green-deep:#06402A; --green-mid:#2F8A5E; --mint:#E6F1EA; --mint-2:#CFE3D6;
-    --gold:#C9A227; --paper:#FAFBF8; --ink:#16241C; --muted:#5D6F65; --line:#D9E3DC; --red:#B3261E;
-    --lvl1:#0B5D3B; --lvl2:#2F8A5E; --lvl3:#C9A227; --lvl4:#E0913A; --lvl5:#B3261E;
+    --teal:#1E9E8A; --teal-deep:#0F6E62; --teal-soft:#E4F4F1; --gold:#C9A227; --gold-soft:#FBF4DC;
+    --paper:#F6F8F7; --ink:#1E2A26; --muted:#6B7A74; --line:#DCE5E1; --red:#C62828;
+    --l1:#4CBF8E; --l2:#2AA79B; --l3:#3D9BE9; --l4:#F39A3C; --l5:#F26D6D;
   }
   *{box-sizing:border-box}
-  html{font-size:16px}
   body{margin:0;font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
-  header{background:linear-gradient(135deg,var(--green-deep),var(--green));color:#fff;padding:28px 0 22px}
-  .wrap{width:min(1120px,92%);margin:0 auto}
-  .brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .seal{width:52px;height:52px;border:2px solid var(--gold);border-radius:50%;display:grid;place-items:center;font-weight:700;color:var(--gold);font-size:22px;flex:none}
-  .brand small{display:block;opacity:.85;font-size:.85rem}
-  .brand h1{margin:0;font-size:1.35rem;font-weight:600;letter-spacing:.01em}
-  .brand .school{margin-inline-start:auto;text-align:left;font-size:.9rem;opacity:.9}
-  .brand .school input{background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.4);color:#fff;font:inherit;text-align:left;width:230px;padding:2px 4px}
-  .brand .school input::placeholder{color:rgba(255,255,255,.6)}
-  main{padding:28px 0 60px}
-  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:22px}
-  .panel h2{margin:0 0 6px;font-size:1.1rem;font-weight:600;color:var(--green)}
-  .panel p.lead{margin:0 0 18px;color:var(--muted);font-size:.93rem}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
-  label{display:block;font-size:.88rem;color:var(--muted);margin-bottom:5px}
-  input[type=number],select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:var(--ink)}
+  .wrap{width:min(1180px,94%);margin:0 auto}
+  .topstrip{height:6px;background:linear-gradient(90deg,var(--gold) 0 22%,#fff 22% 40%,var(--teal) 40% 66%,#fff 66% 78%,var(--teal-deep) 78% 100%)}
+  header.app{background:#fff;border-bottom:1px solid var(--line);padding:14px 0 12px}
+  header.app .rhead{margin-bottom:0}
+  header.app .org{font-family:Amiri,serif;font-size:1.45rem;font-weight:700;color:var(--teal-deep);line-height:1.3}
+  header.app .org span{display:block;font-family:"IBM Plex Sans Arabic";font-size:.78rem;font-weight:500;color:var(--muted)}
+  header.app .exam{color:var(--teal-deep);font-weight:600}
+  main{padding:26px 0 70px}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 26px 24px;margin-bottom:22px}
+  .panel h2{position:relative;text-align:center;margin:4px 0 14px;font-size:1.02rem;font-weight:600}
+  .panel h2::before{content:"";position:absolute;top:50%;left:0;right:0;border-top:3px double var(--line)}
+  .panel h2 span{position:relative;display:inline-block;background:#fff;border:1.5px solid var(--teal);border-radius:8px;padding:7px 26px;color:var(--teal-deep)}
+  .panel p.lead{margin:0 0 20px;color:var(--muted);font-size:.9rem;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px 14px}
+  .grid > div{position:relative}
+  label{display:block;font-size:.86rem;color:var(--muted);margin-bottom:5px}
+  .grid label:not(.plain-label){position:absolute;top:-9px;right:12px;z-index:1;margin:0;background:#fff;padding:0 7px;font-size:.75rem;font-weight:600;color:var(--teal-deep)}
+  .plain-label{text-align:center;margin-bottom:8px}
+  input[type=number],input[type=text],select{width:100%;padding:12px;border:1.5px solid var(--teal);border-radius:10px;font:inherit;background:#fff;color:var(--ink);font-weight:600;text-align:center}
+  input::placeholder{font-weight:400;color:#A9B7B1}
+  .search input[type=search],.search select{font-weight:500}
   input:focus,select:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-  .drop{border:2px dashed var(--mint-2);border-radius:12px;padding:22px;text-align:center;background:var(--mint);cursor:pointer;transition:border-color .15s}
-  .drop.over,.drop:hover{border-color:var(--green-mid)}
+  .drop{border:2px dashed var(--teal);border-radius:12px;padding:22px;text-align:center;background:var(--teal-soft);cursor:pointer;font-weight:600;color:var(--teal-deep)}
+  .drop.over,.drop:hover{border-color:var(--teal)}
   .drop input{display:none}
-  .drop .file{font-weight:600;color:var(--green);margin-top:6px;min-height:1.4em}
-  .thresholds{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
-  .thresholds summary{cursor:pointer;color:var(--green);font-size:.92rem;font-weight:500}
-  .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .drop .file{font-weight:600;color:var(--teal-deep);margin-top:6px;min-height:1.4em}
+  details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  summary{cursor:pointer;color:var(--teal-deep);font-size:.92rem;font-weight:500}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
   button{font:inherit;border:0;border-radius:10px;padding:11px 20px;cursor:pointer;font-weight:600}
-  .btn-primary{background:var(--green);color:#fff}
-  .btn-primary:hover{background:var(--green-deep)}
-  .btn-ghost{background:#fff;color:var(--green);border:1px solid var(--green)}
-  .btn-ghost:hover{background:var(--mint)}
+  .btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-deep)}
+  .btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{filter:brightness(.92)}
+  .btn-ghost{background:#fff;color:var(--teal-deep);border:1px solid var(--teal)}.btn-ghost:hover{background:var(--teal-soft)}
   .btn-link{background:none;color:var(--muted);padding:6px 4px;text-decoration:underline;font-weight:500}
   .error{background:#FBEAE8;color:var(--red);border-radius:10px;padding:12px 14px;margin-top:14px;display:none}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-  .stat{background:var(--mint);border-radius:12px;padding:14px 16px}
-  .stat b{display:block;font-size:1.6rem;font-weight:700;color:var(--green);line-height:1.2}
-  .stat span{font-size:.85rem;color:var(--muted)}
-  .stat.gold b{color:var(--gold)}
-  .tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:18px;flex-wrap:wrap}
-  .tab{background:none;border:0;padding:10px 16px;border-radius:10px 10px 0 0;color:var(--muted);font-weight:500;margin-bottom:-2px;border-bottom:2px solid transparent}
-  .tab.active{color:var(--green);border-bottom-color:var(--green);font-weight:600}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  @media(max-width:820px){.two{grid-template-columns:1fr}}
-  .chart-box{position:relative;height:300px}
-  h3{font-size:1rem;font-weight:600;margin:0 0 10px}
-  table{width:100%;border-collapse:collapse;font-size:.93rem}
-  th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}
-  th{background:var(--mint);color:var(--green);font-weight:600;position:sticky;top:0}
-  tbody tr:nth-child(even){background:#F5F9F6}
-  .table-wrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:12px}
-  .rank{font-weight:700;color:var(--green);width:60px}
-  .rank.medal{color:var(--gold)}
-  .lvl{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;color:#fff;font-weight:500}
-  .search{margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap}
+  .note{font-size:.84rem;color:var(--muted);margin-top:8px}
+  .hidden{display:none!important}
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
+  .tab{background:#fff;border:1.5px solid var(--line);padding:8px 20px;color:var(--muted);font-weight:600;border-radius:8px}
+  .tab:hover{border-color:var(--teal)}
+  .tab.active{color:#fff;background:var(--teal);border-color:var(--teal)}
+  .check{display:inline-flex;align-items:center;gap:8px;background:var(--teal-soft);padding:8px 14px;border-radius:999px;font-size:.9rem;cursor:pointer}
+  .check input{accent-color:var(--teal)}
+  .search{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
   .search input[type=search]{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
-  .search select{width:auto;min-width:150px}
-  .gap-pos{color:var(--green-mid)} .gap-neg{color:var(--red)}
-  .hidden{display:none}
-  .note{font-size:.85rem;color:var(--muted);margin-top:8px}
-  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 0 30px}
+  .search select{width:auto;min-width:160px}
+
+  /* ---------- صفحات التقرير (A4) ---------- */
+  .sheet-scroll{overflow-x:auto;padding:4px}
+  .page{width:210mm;min-height:297mm;background:#fff;margin:0 auto 18px;padding:12mm 12mm 10mm;box-shadow:0 2px 14px rgba(0,0,0,.08);position:relative;display:flex;flex-direction:column;page-break-after:always;break-after:page}
+  .page:last-child{page-break-after:auto;break-after:auto}
+  .rhead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:10px}
+  .rhead .org{font-size:.86rem;line-height:1.55;font-weight:500}
+  .rhead .logo{text-align:center}
+  .rhead .logo img{height:60px;display:block;margin:0 auto 2px}
+  .rhead .logo .wm{font-family:Amiri,serif;font-size:1.5rem;color:var(--teal);font-weight:700;line-height:1.1}
+  .rhead .logo .wm small{display:block;font-family:"IBM Plex Sans Arabic";font-size:.62rem;color:var(--teal-deep);letter-spacing:.06em;font-weight:500}
+  .rhead .exam{justify-self:start;border:1px solid var(--muted);border-radius:8px;padding:8px 16px;font-size:.86rem;font-weight:500}
+  .band{position:relative;text-align:center;margin:12px 0 16px}
+  .band::before{content:"";position:absolute;inset:50% 0 auto;border-top:3px double var(--line)}
+  .band span{position:relative;background:#fff;border:1.5px solid var(--teal);border-radius:8px;padding:8px 26px;font-weight:600;color:var(--teal-deep)}
+  .info{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .info .box{border:1.5px solid var(--teal);border-radius:10px;padding:14px 10px 8px;text-align:center;position:relative;font-weight:600}
+  .info .box b{position:absolute;top:-11px;right:12px;background:#fff;padding:0 6px;font-size:.78rem;color:var(--teal-deep);font-weight:600}
+  .two{display:grid;grid-template-columns:1fr 1.2fr;gap:18px;margin-bottom:14px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
+  .kv .k{border:1.5px solid var(--teal);border-radius:10px;padding:6px 14px;text-align:center;font-weight:600;color:var(--teal-deep);font-size:.9rem;min-width:130px}
+  .kv .v{border:1px solid var(--line);border-radius:10px;padding:6px 10px;text-align:center;font-weight:600}
+  .lvtbl{width:100%;border-collapse:separate;border-spacing:6px 6px}
+  .lvtbl th{font-weight:500;color:var(--muted);font-size:.86rem;padding-bottom:2px}
+  .lvtbl td{border:1px solid var(--line);border-radius:8px;text-align:center;padding:5px;font-weight:600;font-size:.9rem}
+  .lvtbl td.pill{color:#fff;border:0;letter-spacing:.04em}
+  .lvtitle{color:var(--teal);font-weight:600;text-align:center;margin:0 0 6px}
+  .chartbox{border:1.5px solid var(--teal-soft);border-radius:12px;padding:12px 10px 8px;margin-bottom:14px}
+  .chartbox h4{margin:0 0 8px;text-align:center;color:var(--teal);font-weight:600;font-size:.95rem}
+  .donuts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .donut{text-align:center}
+  .donut svg{width:96px;height:96px}
+  .donut .t{font-size:.8rem;font-weight:600}
+  .rfoot{margin-top:auto;display:flex;justify-content:space-between;padding-top:10px;font-weight:600;font-size:.92rem}
+  .rfoot span{border-top:1px solid var(--line);padding:6px 20px 0}
+  .stbl{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:.9rem}
+  .stbl th{background:var(--teal);color:#fff;padding:9px;font-weight:600}
+  .stbl th:first-child{border-radius:0 8px 8px 0}.stbl th:last-child{border-radius:8px 0 0 8px}
+  .stbl td{background:#F3F6F5;padding:8px 10px;text-align:center}
+  .stbl td.name{text-align:right}
+  .stbl td:first-child{border-radius:0 8px 8px 0;width:44px;color:var(--muted)}
+  .stbl td:last-child{border-radius:8px 0 0 8px;border-left:5px solid var(--lc);font-weight:600}
+  .pgnum{text-align:center;color:var(--muted);font-size:.75rem}
+
+  /* ---------- لوحة التحاليل ---------- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:20px 12px;margin-bottom:20px}
+  .card{position:relative;background:#fff;border:1.5px solid var(--teal);border-radius:10px;padding:14px 10px 10px;text-align:center}
+  .card b{display:block;font-size:1.5rem;color:var(--teal-deep);line-height:1.2}
+  .card span{position:absolute;top:-10px;right:12px;background:#fff;padding:0 7px;font-size:.75rem;font-weight:600;color:var(--teal-deep)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.cols{grid-template-columns:1fr}}
+  .cbox{position:relative;height:280px}
+  h3{font-size:.95rem;font-weight:600;margin:0 0 10px;color:var(--teal);text-align:center}
+  table.plain{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:.88rem}
+  table.plain th{background:var(--teal);color:#fff;padding:9px;font-weight:600;text-align:center}
+  table.plain th:first-child{border-radius:0 8px 8px 0}
+  table.plain th:last-child{border-radius:8px 0 0 8px}
+  table.plain td{background:#F3F6F5;padding:8px 10px;text-align:center}
+  table.plain td:first-child{border-radius:0 8px 8px 0}
+  table.plain td:last-child{border-radius:8px 0 0 8px}
+  table.plain td:nth-child(2){text-align:right}
+  .gap-pos{color:var(--teal)}.gap-neg{color:var(--red)}
+
+  /* ---------- الشهادات (A4 عرضي) ---------- */
+  .cert{width:297mm;height:210mm;background:#fff;margin:0 auto 18px;padding:12mm;box-shadow:0 2px 14px rgba(0,0,0,.08);page-break-after:always;break-after:page;position:relative}
+  .cert:last-child{page-break-after:auto;break-after:auto}
+  .cert .frame{border:3px solid var(--teal);height:100%;padding:6px;position:relative}
+  .cert .frame::before{content:"";position:absolute;inset:6px;border:1.5px solid var(--gold);pointer-events:none}
+  .cert .inner{height:100%;display:flex;flex-direction:column;padding:10mm 14mm;text-align:center;position:relative;z-index:1}
+  .cert .rhead{margin-bottom:6px}
+  .cert .title{font-family:Amiri,serif;font-size:3rem;color:var(--teal-deep);margin:6px 0 0;font-weight:700}
+  .cert .sub{color:var(--gold);letter-spacing:.2em;font-size:.9rem;font-weight:600;margin-bottom:14px}
+  .cert .body{font-size:1.15rem;line-height:2}
+  .cert .name{font-family:Amiri,serif;font-size:2.4rem;color:var(--teal-deep);font-weight:700;margin:2px 0;border-bottom:2px solid var(--gold);display:inline-block;padding:0 30px 2px}
+  .cert .badge{position:absolute;left:18mm;top:60mm;width:74px;height:74px;border-radius:50%;background:var(--gold-soft);border:3px solid var(--gold);display:grid;place-items:center;font-weight:700;color:var(--teal-deep);font-size:.95rem;line-height:1.2;transform:rotate(-8deg)}
+  .cert .sigs{margin-top:auto;display:flex;justify-content:space-between;padding:0 20mm;font-weight:600}
+  .cert .sigs div{border-top:1px solid var(--ink);padding-top:6px;min-width:150px}
+  .cert .sigs small{display:block;color:var(--muted);font-weight:500}
+  .cert .date{position:absolute;bottom:14mm;left:0;right:0;text-align:center;color:var(--muted);font-size:.88rem}
+
+  #exportRoot{position:absolute;left:-10000px;top:0}
   @media print{
-    header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    #setup,.actions,.tabs,.search,footer,.no-print{display:none!important}
-    .panel{break-inside:avoid;border:0;padding:0 0 12px}
-    .table-wrap{max-height:none;overflow:visible;border:0}
-    .tabpane.hidden{display:block!important}
+    header.app,.topstrip,.panel:not(.printable),.no-print,footer{display:none!important}
     body{background:#fff}
+    .page,.cert{box-shadow:none;margin:0}
+    .sheet-scroll{overflow:visible;padding:0}
+    @page{margin:0}
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap brand">
-    <div class="seal">٦</div>
-    <div>
-      <small>المملكة العربية السعودية — وزارة التعليم</small>
-      <h1>تحليل نتائج الصف السادس الابتدائي</h1>
-    </div>
-    <div class="school no-print"><input id="schoolName" placeholder="اسم المدرسة / المعلمة (اختياري)"></div>
+<div class="topstrip"></div>
+<header class="app">
+  <div class="wrap rhead">
+    <div class="org">نظام تحليل نتائج الاختبارات<span>تحليل، ترتيب، رسوم بيانية، تقارير PDF، وشهادات تفوق</span></div>
+    <div class="logo"><img src="/static/logo.png" alt="" onerror="this.remove()"><div class="wm">وزارة التعليم<small>Ministry of Education</small></div></div>
+    <div class="exam">نموذج تحليل النتائج</div>
   </div>
 </header>
 
 <main class="wrap">
 
+  <!-- ===================== الإعداد ===================== -->
   <section class="panel" id="setup">
-    <h2>إعداد التحليل</h2>
-    <p class="lead">يتم رفع ملف الدرجات وإدخال الدرجة الكلية، ثم يحسب النظام النسب والمستويات والترتيب على مستوى الفصل والصف.</p>
+    <h2><span>١. بيانات التقرير</span></h2>
+    <p class="lead">تظهر هذه البيانات في رأس التقرير وتذييله وفي الشهادات.</p>
+    <div class="grid">
+      <div><label>الإدارة العامة للتعليم</label><input type="text" id="m_admin" placeholder="مثال: الإدارة العامة للتعليم بمنطقة الرياض"></div>
+      <div><label>اسم المدرسة</label><input type="text" id="m_school" placeholder="مثال: الابتدائية الخامسة"></div>
+      <div><label>المادة</label><input type="text" id="m_subject" placeholder="مثال: الرياضيات"></div>
+      <div><label>نوع الاختبار</label><input type="text" id="m_exam" placeholder="مثال: الاختبار التشخيصي قبلي"></div>
+      <div><label>المرحلة الدراسية / الصف</label><input type="text" id="m_grade" placeholder="مثال: سادس"></div>
+      <div><label>السنة / الفصل الدراسي</label><input type="text" id="m_term" placeholder="مثال: الفصل الأول / ١٤٤٨هـ"></div>
+      <div><label>اسم المعلمة</label><input type="text" id="m_teacher" placeholder="يظهر في تذييل الصفحة"></div>
+      <div><label>اسم مديرة المدرسة</label><input type="text" id="m_principal" placeholder="يظهر في تذييل الصفحة"></div>
+      <div><label>الطلاب / الطالبات</label>
+        <select id="m_gender"><option value="f">طالبات</option><option value="m">طلاب</option></select></div>
+      <div><label>تاريخ الشهادات</label><input type="text" id="m_date" placeholder="مثال: ١٤٤٨/٢/١٥هـ"></div>
+    </div>
 
+    <h2 style="margin-top:22px">٢. ملف الدرجات</h2>
+    <p class="lead">إما شيت لكل فصل (اسم الشيت = اسم الفصل) بعمودي <b>اسم الطالب</b> و<b>الدرجة</b>، أو شيت واحد بعمود <b>الفصل</b> إضافي.</p>
     <div class="grid">
       <div style="grid-column:1/-1">
-        <label>ملف الدرجات (Excel أو CSV) — إما شيت لكل فصل (اسم الشيت = اسم الفصل) بعمودي <b>اسم الطالب</b> و<b>الدرجة</b>، أو شيت واحد بعمود <b>الفصل</b> إضافي</label>
         <div class="drop" id="drop">
           <input type="file" id="file" accept=".xlsx,.xls,.csv">
           <div>اضغط هنا أو اسحب الملف لرفعه</div>
@@ -113,29 +194,21 @@
         </div>
         <button class="btn-link" onclick="location.href='/template'">تحميل نموذج إكسل جاهز</button>
       </div>
-      <div>
-        <label for="total">الدرجة الكلية للاختبار</label>
-        <input type="number" id="total" value="100" min="1" step="0.5">
-      </div>
-      <div>
-        <label for="support">حد "يحتاج متابعة" (نسبة %)</label>
-        <input type="number" id="support" value="60" min="0" max="100">
-      </div>
+      <div><label>درجة القياس (الدرجة الكلية)</label><input type="number" id="total" value="20" min="1" step="0.5"></div>
+      <div><label>حد "يحتاج متابعة" (%)</label><input type="number" id="support" value="60" min="0" max="100"></div>
     </div>
-
-    <details class="thresholds">
-      <summary>تعديل حدود المستويات (النسبة المئوية)</summary>
+    <details>
+      <summary>تعديل حدود التقديرات (النسبة المئوية)</summary>
       <div class="grid" style="margin-top:12px">
         <div><label>ممتاز من</label><input type="number" id="t_excellent" value="90"></div>
         <div><label>جيد جدًا من</label><input type="number" id="t_vgood" value="80"></div>
-        <div><label>جيد من</label><input type="number" id="t_good" value="65"></div>
+        <div><label>جيد من</label><input type="number" id="t_good" value="70"></div>
         <div><label>مقبول من</label><input type="number" id="t_pass" value="50"></div>
       </div>
-      <p class="note">أقل من حد "مقبول" يُصنّف غير مجتاز.</p>
+      <p class="note">أقل من حد "مقبول" يُصنّف ضعيف. الحدود الافتراضية مطابقة لنموذج تحليل النتائج المعتمد.</p>
     </details>
-
     <div class="actions">
-      <button class="btn-primary" id="run">احسبي النتائج</button>
+      <button class="btn-primary" id="run">إنشاء التقرير</button>
       <span id="loading" class="note hidden">جارٍ التحليل…</span>
     </div>
     <div class="error" id="error"></div>
@@ -143,134 +216,99 @@
 
   <div id="results" class="hidden">
 
-    <section class="panel">
-      <h2>ملخص الصف السادس</h2>
-      <p class="lead" id="summaryLead"></p>
-      <div class="stats" id="gradeStats"></div>
-      <div class="actions no-print">
-        <button class="btn-ghost" id="export">تصدير النتائج إلى Excel</button>
-        <button class="btn-ghost" onclick="window.print()">طباعة التقرير</button>
+    <!-- ===================== التصدير ===================== -->
+    <section class="panel no-print">
+      <h2><span>التصدير</span></h2>
+      <p class="lead">اختيار ما يُضمَّن في ملف PDF. النطاق المعروض في التقرير (فصل معين أو الصف كامل) هو ما يتم تصديره.</p>
+      <div class="actions" style="margin-top:0">
+        <label class="check"><input type="checkbox" id="x_report" checked> التقرير الإحصائي</label>
+        <label class="check"><input type="checkbox" id="x_list" checked> قائمة الطلاب</label>
+        <label class="check"><input type="checkbox" id="x_analytics"> التحاليل الإضافية</label>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="pdf">تحميل PDF</button>
+        <button class="btn-ghost" onclick="window.print()">طباعة</button>
+        <button class="btn-ghost" id="excel">تصدير Excel</button>
+        <span class="note" id="pdfStatus"></span>
       </div>
     </section>
 
-    <section class="panel">
-      <div class="tabs" id="tabs"></div>
+    <!-- ===================== التقرير ===================== -->
+    <section class="panel printable">
+      <div class="tabs no-print" id="tabs"></div>
+      <div class="search no-print">
+        <input type="search" id="search" placeholder="بحث باسم الطالب…">
+        <select id="levelFilter"></select>
+      </div>
+      <div class="sheet-scroll"><div id="report"></div></div>
+    </section>
 
-      <!-- عرض فصل -->
-      <div id="paneClass" class="tabpane">
-        <h2 id="classTitle"></h2>
-        <div class="stats" id="classStats" style="margin-bottom:20px"></div>
-        <div class="two">
-          <div>
-            <h3>عدد الطلاب في كل مستوى</h3>
-            <div class="chart-box"><canvas id="chartClassLevels"></canvas></div>
-          </div>
-          <div>
-            <h3>توزيع النسب المئوية</h3>
-            <div class="chart-box"><canvas id="chartClassHist"></canvas></div>
-          </div>
-        </div>
-        <h3 style="margin-top:22px">ترتيب طلاب الفصل من الأعلى إلى الأقل</h3>
-        <div class="search">
-          <input type="search" id="searchClass" placeholder="بحث باسم الطالب…">
-          <select id="sortClass">
-            <option value="rank">ترتيب: الأعلى نسبة</option>
-            <option value="rank_asc">ترتيب: الأقل نسبة</option>
-            <option value="name">ترتيب: الاسم</option>
-          </select>
-          <select id="levelClass"><option value="">كل المستويات</option></select>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>الترتيب</th><th>اسم الطالب</th><th>الدرجة</th><th>النسبة %</th><th>المستوى</th><th>ترتيبه على الصف</th></tr></thead>
-            <tbody id="tblClass"></tbody>
-          </table>
+    <!-- ===================== التحاليل الإضافية ===================== -->
+    <section class="panel" id="analytics">
+      <h2><span>التحاليل الإضافية — الصف كامل</span></h2>
+      <div class="cards" id="gradeCards"></div>
+      <div class="cols">
+        <div><h3>مقارنة التقديرات بين الفصول</h3><div class="cbox"><canvas id="cCompare"></canvas></div></div>
+        <div><h3>متوسط كل فصل مقارنة بالصف</h3><div class="cbox"><canvas id="cAvg"></canvas></div></div>
+      </div>
+      <div class="cols" style="margin-top:20px">
+        <div><h3>توزيع النسب المئوية (الصف كامل)</h3><div class="cbox"><canvas id="cHist"></canvas></div></div>
+        <div><h3>إحصائيات الفصول</h3>
+          <table class="plain"><thead><tr><th>الفصل</th><th>العدد</th><th>المتوسط %</th><th>الفرق عن الصف</th><th>التحصيل %</th><th>الاجتياز %</th></tr></thead><tbody id="tblClassStats"></tbody></table>
         </div>
       </div>
-
-      <!-- عرض الصف كامل -->
-      <div id="paneGrade" class="tabpane hidden">
-        <h2>الصف السادس — جميع الفصول</h2>
-        <div class="two">
-          <div>
-            <h3>عدد الطلاب في كل مستوى (الصف كامل)</h3>
-            <div class="chart-box"><canvas id="chartGradeLevels"></canvas></div>
-          </div>
-          <div>
-            <h3>مقارنة المستويات بين الفصول</h3>
-            <div class="chart-box"><canvas id="chartClassCompare"></canvas></div>
-          </div>
+      <div class="cols" style="margin-top:20px">
+        <div><h3>الأوائل على الصف (أفضل ١٠)</h3>
+          <table class="plain"><thead><tr><th>م</th><th>الاسم</th><th>الفصل</th><th>النسبة %</th></tr></thead><tbody id="tblTop"></tbody></table>
         </div>
-        <div class="two" style="margin-top:22px">
-          <div>
-            <h3>متوسط كل فصل مقارنة بمتوسط الصف</h3>
-            <div class="chart-box"><canvas id="chartAvg"></canvas></div>
-          </div>
-          <div>
-            <h3>إحصائيات الفصول</h3>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>الفصل</th><th>العدد</th><th>المتوسط %</th><th>الفرق عن الصف</th><th>الاجتياز %</th><th>الأعلى</th><th>الأدنى</th></tr></thead>
-                <tbody id="tblClassStats"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        <h3 style="margin-top:22px">ترتيب طلاب الصف السادس كاملًا</h3>
-        <div class="search">
-          <input type="search" id="searchGrade" placeholder="بحث باسم الطالب…">
-          <select id="filterClass"><option value="">كل الفصول</option></select>
-          <select id="sortGrade">
-            <option value="rank">ترتيب: الأعلى نسبة</option>
-            <option value="rank_asc">ترتيب: الأقل نسبة</option>
-            <option value="name">ترتيب: الاسم</option>
-            <option value="class">ترتيب: الفصل</option>
-          </select>
-          <select id="levelGrade"><option value="">كل المستويات</option></select>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>الترتيب</th><th>اسم الطالب</th><th>الفصل</th><th>الدرجة</th><th>النسبة %</th><th>المستوى</th><th>ترتيبه في فصله</th></tr></thead>
-            <tbody id="tblGrade"></tbody>
-          </table>
+        <div><h3 id="supportTitle">يحتاجون متابعة</h3>
+          <table class="plain"><thead><tr><th>الاسم</th><th>الفصل</th><th>الدرجة</th><th>النسبة %</th></tr></thead><tbody id="tblSupport"></tbody></table>
         </div>
       </div>
     </section>
 
-    <section class="panel two">
-      <div>
-        <h2>الأوائل على الصف (أفضل ١٠)</h2>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>الترتيب</th><th>اسم الطالب</th><th>الفصل</th><th>النسبة %</th></tr></thead>
-            <tbody id="tblTop"></tbody>
-          </table>
-        </div>
+    <!-- ===================== الشهادات ===================== -->
+    <section class="panel">
+      <h2><span>شهادات التفوق</span></h2>
+      <p class="lead" id="certLead"></p>
+      <div class="actions" style="margin-top:0">
+        <button class="btn-gold" id="certPdf">تحميل الشهادات PDF</button>
+        <button class="btn-ghost" id="certToggle">معاينة الشهادات</button>
+        <span class="note" id="certStatus"></span>
       </div>
-      <div>
-        <h2 id="supportTitle">طلاب يحتاجون متابعة</h2>
-        <p class="lead" id="supportLead"></p>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>اسم الطالب</th><th>الفصل</th><th>الدرجة</th><th>النسبة %</th></tr></thead>
-            <tbody id="tblSupport"></tbody>
-          </table>
-        </div>
-      </div>
+      <div class="sheet-scroll hidden" id="certWrap" style="margin-top:16px"><div id="certs"></div></div>
     </section>
 
   </div>
 </main>
 
-<footer>الترتيب يعتمد على النسبة المئوية؛ الطلاب المتساوون يأخذون نفس الرقم ويستمر الترقيم بعدهم بدون فجوات.</footer>
+<footer class="wrap note" style="text-align:center;padding-bottom:30px;border-top:3px double var(--line);padding-top:14px">الترتيب متسلسل حسب النسبة المئوية، وعند التساوي حسب الاسم أبجديًا. الشهادات تُنشأ لجميع الحاصلين على تقدير ممتاز.</footer>
+
+<div id="exportRoot"></div>
 
 <script>
-const LEVEL_COLORS = ['#0B5D3B','#2F8A5E','#C9A227','#E0913A','#B3261E'];
-let DATA = null, currentClass = null;
+const LEVEL_COLORS = ['#4CBF8E','#2AA79B','#3D9BE9','#F39A3C','#F26D6D'];
+const ROWS_PER_PAGE = 22;
+let DATA = null, scope = null;   // scope: اسم الفصل أو '__grade'
 const charts = {};
 const $ = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString('ar-SA', {maximumFractionDigits:2});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* رفع الملف (اختيار أو سحب وإفلات) */
+/* بيانات التقرير المدخلة يدويًا */
+function meta(){
+  const g = $('m_gender').value === 'f';
+  return {
+    admin: $('m_admin').value.trim(), school: $('m_school').value.trim(),
+    subject: $('m_subject').value.trim() || '—', exam: $('m_exam').value.trim(),
+    grade: $('m_grade').value.trim(), term: $('m_term').value.trim() || '—',
+    teacher: $('m_teacher').value.trim(), principal: $('m_principal').value.trim(),
+    date: $('m_date').value.trim(), female: g,
+    student: g ? 'الطالبة' : 'الطالب', students: g ? 'الطالبات' : 'الطلاب',
+  };
+}
+
+/* رفع الملف */
 const drop = $('drop'), fileInput = $('file');
 drop.onclick = () => fileInput.click();
 fileInput.onchange = () => $('fileName').textContent = fileInput.files[0]?.name || '';
@@ -280,7 +318,7 @@ drop.addEventListener('drop', ev => { fileInput.files = ev.dataTransfer.files; f
 
 /* التحليل */
 $('run').onclick = async () => {
-  const err = $('error'); err.style.display = 'none';
+  $('error').style.display = 'none';
   if (!fileInput.files[0]) return showError('يجب رفع ملف الدرجات أولًا.');
   const fd = new FormData();
   fd.append('file', fileInput.files[0]);
@@ -291,144 +329,246 @@ $('run').onclick = async () => {
     const json = await res.json();
     if (!res.ok) return showError(json.error || 'حدث خطأ.');
     DATA = json;
-    render();
+    renderAll();
   } catch (e) { showError('تعذّر الاتصال بالخادم.'); }
   finally { $('loading').classList.add('hidden'); }
 };
 function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display='block'; }
 
-/* دوال مساعدة للعرض والرسوم */
-const fmt = n => Number(n).toLocaleString('ar-SA', {maximumFractionDigits:2});
-const lvlBadge = l => `<span class="lvl" style="background:${LEVEL_COLORS[DATA.levels.indexOf(l)]}">${l}</span>`;
-const rankCell = r => `<td class="rank ${r<=3?'medal':''}">${r}</td>`;
-function statCards(st, extra=''){
-  return `
-    <div class="stat"><b>${st.count}</b><span>عدد الطلاب</span></div>
-    <div class="stat"><b>${fmt(st.avg)}%</b><span>المتوسط</span></div>
-    <div class="stat"><b>${fmt(st.median)}%</b><span>الوسيط</span></div>
-    <div class="stat"><b>${fmt(st.pass_rate)}%</b><span>نسبة الاجتياز</span></div>
-    <div class="stat gold"><b>${fmt(st.max)}%</b><span>أعلى نسبة</span></div>
-    <div class="stat"><b>${fmt(st.min)}%</b><span>أقل نسبة</span></div>
-    <div class="stat"><b>${fmt(st.std)}</b><span>الانحراف المعياري</span></div>${extra}`;
+/* إعادة رسم التقرير عند تعديل البيانات اليدوية */
+['m_admin','m_school','m_subject','m_exam','m_grade','m_term','m_teacher','m_principal','m_gender','m_date']
+  .forEach(id => $(id).addEventListener('input', () => { if (DATA) { renderReport(); renderCerts(); } }));
+
+/* ---------------- أجزاء التقرير ---------------- */
+function reportHead(m){
+  return `<div class="rhead">
+    <div class="org">${esc(m.admin || 'الإدارة العامة للتعليم')}<br>${esc(m.school || '')}</div>
+    <div class="logo"><img src="/static/logo.png" alt="" onerror="this.remove()"><div class="wm">وزارة التعليم<small>Ministry of Education</small></div></div>
+    <div class="exam">${esc(m.exam || 'تحليل النتائج')}</div>
+  </div>
+  <div class="band"><span>تحليل نتائج اختبار مادة [${esc(m.subject)}]</span></div>`;
 }
+function reportFoot(m){
+  return `<div class="rfoot">
+    <span>${m.female ? 'معلمة' : 'معلم'}: ${esc(m.teacher || '................')}</span>
+    <span>${m.female ? 'مديرة' : 'مدير'} المدرسة: ${esc(m.principal || '................')}</span>
+  </div>`;
+}
+function donutSVG(pct, color){
+  const r = 40, c = 2 * Math.PI * r, dash = c * Math.min(pct,100) / 100;
+  return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="#ECEFEE" stroke-width="9"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="9" stroke-linecap="round"
+      stroke-dasharray="${dash.toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 50 50)"/>
+    <text x="50" y="55" text-anchor="middle" font-size="17" font-weight="700" fill="#1E2A26">${Math.round(pct)}٪</text></svg>`;
+}
+function barsSVG(counts){
+  const max = Math.max(1, ...counts), W = 560, H = 190, bw = 62, gap = (W - 5*bw) / 6;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-height:200px">`;
+  DATA.levels.forEach((l, i) => {
+    const h = Math.max(4, (counts[i] / max) * 130), x = W - gap - (i+1)*bw - i*gap, y = 150 - h;
+    s += `<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="7" fill="${LEVEL_COLORS[i]}"/>
+          <text x="${x+bw/2}" y="${y-6}" text-anchor="middle" font-size="14" font-weight="700" fill="#1E2A26">${counts[i]}</text>
+          <text x="${x+bw/2}" y="${H-10}" text-anchor="middle" font-size="13" font-weight="600" fill="#1E2A26">${l}</text>`;
+  });
+  return s + `<line x1="0" x2="${W}" y1="150" y2="150" stroke="#DCE5E1"/></svg>`;
+}
+function scopeStudents(){
+  return DATA.students.filter(s => scope === '__grade' || s.class === scope);
+}
+function scopeStats(){ return scope === '__grade' ? DATA.grade_stats : DATA.class_stats[scope]; }
+function scopeLabel(m){ return scope === '__grade' ? `${esc(m.grade || 'الصف')} / جميع الفصول` : `${esc(m.grade || '')} / ${esc(scope)}`; }
+
+function statsPage(m){
+  const st = scopeStats(), n = st.count || 1;
+  const levelRows = DATA.levels.map((l,i) => {
+    const r = DATA.ranges[l];
+    return `<tr><td class="pill" style="background:${LEVEL_COLORS[i]}">${l}</td><td>${fmt(r.high)} - ${fmt(r.low)}</td><td>${st.levels[l]}</td></tr>`;
+  }).join('');
+  const donuts = DATA.levels.map((l,i) => `<div class="donut">${donutSVG(st.levels[l]/n*100, LEVEL_COLORS[i])}<div class="t">${l}</div></div>`).join('');
+  return `<div class="page">
+    ${reportHead(m)}
+    <div class="info">
+      <div class="box"><b>المرحلة الدراسية / الصف:</b>${scopeLabel(m)}</div>
+      <div class="box"><b>السنة / الفصل الدراسي:</b>${esc(m.term)}</div>
+      <div class="box"><b>درجة القياس (الاختبار):</b>${fmt(DATA.total)}</div>
+    </div>
+    <div class="two">
+      <div class="kv">
+        <div class="k">عدد ${m.students}</div><div class="v">${st.count}</div>
+        <div class="k">أعلى درجة</div><div class="v">${fmt(st.score_max)}</div>
+        <div class="k">أقل درجة</div><div class="v">${fmt(st.score_min)}</div>
+        <div class="k">متوسط الدرجات</div><div class="v">${fmt(st.score_avg)}</div>
+        <div class="k">نسبة التحصيل</div><div class="v">${fmt(st.attainment)}٪</div>
+        <div class="k">مجموع الدرجات</div><div class="v">${fmt(st.score_sum)}</div>
+      </div>
+      <div>
+        <p class="lvtitle">الإحصائيات التفصيلية</p>
+        <table class="lvtbl"><thead><tr><th>التقدير</th><th>النطاق</th><th>عدد ${m.students}</th></tr></thead><tbody>${levelRows}</tbody></table>
+      </div>
+    </div>
+    <div class="chartbox"><h4>رسم بياني (نسب ${m.students} لكل تقدير)</h4><div class="donuts">${donuts}</div></div>
+    <div class="chartbox"><h4>رسم بياني (عدد ${m.students} لكل تقدير)</h4>${barsSVG(DATA.levels.map(l => st.levels[l]))}</div>
+    ${reportFoot(m)}
+  </div>`;
+}
+function listPages(m, rows){
+  if (!rows.length) return `<div class="page">${reportHead(m)}<p style="text-align:center;color:var(--muted)">لا توجد نتائج مطابقة</p>${reportFoot(m)}</div>`;
+  const pages = [];
+  for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) pages.push(rows.slice(i, i + ROWS_PER_PAGE));
+  const rankKey = scope === '__grade' ? 'rank_grade' : 'rank_class';
+  const classCol = scope === '__grade';
+  return pages.map((chunk, p) => `<div class="page">
+    ${reportHead(m)}
+    <table class="stbl"><thead><tr><th>م</th><th>اسم ${m.student}</th>${classCol?'<th>الفصل</th>':''}<th>الدرجة</th><th>النسبة</th><th>التقدير</th></tr></thead>
+    <tbody>${chunk.map(s => `<tr style="--lc:${LEVEL_COLORS[DATA.levels.indexOf(s.level)]}">
+      <td>${s[rankKey]}</td><td class="name">${esc(s.name)}</td>${classCol?`<td>${esc(s.class)}</td>`:''}<td>${fmt(s.score)}</td><td>${fmt(s.pct)}٪</td><td>${s.level}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="pgnum">صفحة ${p+1} من ${pages.length}</div>
+    ${reportFoot(m)}
+  </div>`).join('');
+}
+function filteredRows(){
+  const q = $('search').value.trim(), lvl = $('levelFilter').value;
+  return scopeStudents().filter(s => s.name.includes(q) && (!lvl || s.level === lvl));
+}
+function renderReport(){
+  const m = meta();
+  $('report').innerHTML = statsPage(m) + listPages(m, filteredRows());
+}
+
+/* ---------------- الشهادات ---------------- */
+function excellentStudents(){ return DATA.students.filter(s => s.level === DATA.levels[0]); }
+function certHTML(s, m){
+  const she = m.female;
+  return `<div class="cert"><div class="frame"><div class="inner">
+    ${reportHead(m).split('<div class="band">')[0]}
+    <div class="title">شهادة تفوق</div>
+    <div class="sub">CERTIFICATE OF EXCELLENCE</div>
+    <div class="body">
+      ${she ? 'تشهد' : 'يشهد'} ${esc(m.school || 'إدارة المدرسة')} بأن ${m.student}<br>
+      <span class="name">${esc(s.name)}</span><br>
+      ${she ? 'قد حصلت' : 'قد حصل'} على تقدير <b style="color:var(--teal-deep)">ممتاز</b> في ${esc(m.exam || 'اختبار')} لمادة ${esc(m.subject)}
+      ${m.grade ? `للصف ${esc(m.grade)}` : ''} (${esc(s.class)})${m.term !== '—' ? ` — ${esc(m.term)}` : ''}<br>
+      بنسبة <b>${fmt(s.pct)}٪</b>، ${she ? 'متمنين لها' : 'متمنين له'} دوام التفوق والنجاح.
+    </div>
+    <div class="badge">ممتاز<br>${fmt(s.pct)}٪</div>
+    <div class="sigs">
+      <div>${esc(m.teacher || '')}<small>${she ? 'معلمة' : 'معلم'} المادة</small></div>
+      <div>${esc(m.principal || '')}<small>${she ? 'مديرة' : 'مدير'} المدرسة</small></div>
+    </div>
+    ${m.date ? `<div class="date">التاريخ: ${esc(m.date)}</div>` : ''}
+  </div></div></div>`;
+}
+function renderCerts(){
+  const m = meta(), list = excellentStudents();
+  $('certLead').textContent = list.length
+    ? `${list.length} ${m.student === 'الطالبة' ? 'طالبة حاصلة' : 'طالب حاصل'} على تقدير ممتاز في جميع الفصول — شهادة لكل ${m.student.replace('ال','')} بصفحة مستقلة (A4 عرضي).`
+    : 'لا يوجد حاصلون على تقدير ممتاز.';
+  $('certs').innerHTML = list.map(s => certHTML(s, m)).join('');
+}
+$('certToggle').onclick = () => {
+  const w = $('certWrap'); w.classList.toggle('hidden');
+  $('certToggle').textContent = w.classList.contains('hidden') ? 'معاينة الشهادات' : 'إخفاء المعاينة';
+};
+
+/* ---------------- التحاليل الإضافية ---------------- */
 function makeChart(id, config){
   if (charts[id]) charts[id].destroy();
   Chart.defaults.font.family = '"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif';
   charts[id] = new Chart($(id), config);
 }
-function barLevels(id, counts){
-  makeChart(id, {type:'bar',
-    data:{labels:DATA.levels, datasets:[{data:DATA.levels.map(l=>counts[l]||0), backgroundColor:LEVEL_COLORS, borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{reverse:true}}}});
-}
-function barHist(id, values){
-  makeChart(id, {type:'bar',
-    data:{labels:DATA.histogram.labels, datasets:[{data:values, backgroundColor:'#2F8A5E', borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{reverse:true,title:{display:true,text:'النسبة المئوية'}}}}});
-}
-
-/* بناء الصفحة بعد استلام النتائج */
-function render(){
-  $('results').classList.remove('hidden');
+function renderAnalytics(){
   const g = DATA.grade_stats;
-  $('summaryLead').textContent = `الدرجة الكلية ${fmt(DATA.total)} — ${DATA.classes.length} فصول — ${g.count} طالب` +
-     (DATA.skipped ? ` (تم تجاهل ${DATA.skipped} صف بدون درجة صحيحة)` : '') +
-     (DATA.warnings.length ? ' — ' + DATA.warnings.join(' | ') : '');
-  $('gradeStats').innerHTML = statCards(g);
-
-  // تبويب لكل فصل + تبويب الصف كامل
-  const tabs = $('tabs'); tabs.innerHTML = '';
-  DATA.classes.forEach(c => {
-    const b = document.createElement('button'); b.className='tab'; b.textContent = `فصل ${c}`;
-    b.onclick = () => selectTab(c); tabs.appendChild(b);
-  });
-  const all = document.createElement('button'); all.className='tab'; all.textContent='الصف كامل';
-  all.onclick = () => selectTab('__grade'); tabs.appendChild(all);
-  selectTab(DATA.classes[0]);
-
-  // رسوم وجداول الصف كامل
-  barLevels('chartGradeLevels', g.levels);
-  makeChart('chartClassCompare', {type:'bar',
-    data:{labels:DATA.classes.map(c=>'فصل '+c),
-      datasets:DATA.levels.map((l,i)=>({label:l, data:DATA.classes.map(c=>DATA.class_stats[c].levels[l]), backgroundColor:LEVEL_COLORS[i], borderRadius:4}))},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',rtl:true}},
-      scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{reverse:true}}}});
-  makeChart('chartAvg', {type:'bar',
-    data:{labels:[...DATA.classes.map(c=>'فصل '+c),'الصف'],
-      datasets:[{data:[...DATA.classes.map(c=>DATA.class_stats[c].avg), g.avg],
-        backgroundColor:[...DATA.classes.map(()=> '#2F8A5E'), '#C9A227'], borderRadius:6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{beginAtZero:true,max:100},x:{reverse:true}}}});
+  $('gradeCards').innerHTML = `
+    <div class="card"><b>${g.count}</b><span>عدد الطلاب</span></div>
+    <div class="card"><b>${fmt(g.avg)}٪</b><span>متوسط النسبة</span></div>
+    <div class="card"><b>${fmt(g.median)}٪</b><span>الوسيط</span></div>
+    <div class="card"><b>${fmt(g.std)}</b><span>الانحراف المعياري</span></div>
+    <div class="card"><b>${fmt(g.attainment)}٪</b><span>نسبة التحصيل</span></div>
+    <div class="card"><b>${fmt(g.pass_rate)}٪</b><span>نسبة الاجتياز</span></div>`;
+  const opts = extra => ({responsive:true, maintainAspectRatio:false, animation:false, ...extra});
+  makeChart('cCompare', {type:'bar',
+    data:{labels:DATA.classes.map(c=>'فصل '+c), datasets:DATA.levels.map((l,i)=>({label:l, data:DATA.classes.map(c=>DATA.class_stats[c].levels[l]), backgroundColor:LEVEL_COLORS[i], borderRadius:4}))},
+    options:opts({plugins:{legend:{position:'bottom',rtl:true}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}, x:{reverse:true}}})});
+  makeChart('cAvg', {type:'bar',
+    data:{labels:[...DATA.classes.map(c=>'فصل '+c),'الصف'], datasets:[{data:[...DATA.classes.map(c=>DATA.class_stats[c].avg), g.avg], backgroundColor:[...DATA.classes.map(()=>'#2AA79B'),'#C9A227'], borderRadius:6}]},
+    options:opts({plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,max:100}, x:{reverse:true}}})});
+  makeChart('cHist', {type:'bar',
+    data:{labels:DATA.histogram.labels, datasets:[{data:DATA.histogram.grade, backgroundColor:'#3D9BE9', borderRadius:6}]},
+    options:opts({plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}, x:{reverse:true}}})});
   $('tblClassStats').innerHTML = DATA.classes.map(c => { const s = DATA.class_stats[c];
-    return `<tr><td>${c}</td><td>${s.count}</td><td>${fmt(s.avg)}</td>
-      <td class="${s.gap>=0?'gap-pos':'gap-neg'}">${s.gap>0?'+':''}${fmt(s.gap)}</td>
-      <td>${fmt(s.pass_rate)}</td><td>${fmt(s.max)}</td><td>${fmt(s.min)}</td></tr>`}).join('');
-  fillSelect('filterClass', DATA.classes.map(c => [c, 'فصل ' + c]), 'كل الفصول');
-  fillSelect('levelGrade', DATA.levels.map(l => [l, l]), 'كل المستويات');
-  fillSelect('levelClass', DATA.levels.map(l => [l, l]), 'كل المستويات');
-  ['searchGrade','filterClass','sortGrade','levelGrade'].forEach(id => $(id).oninput = renderGradeTable);
-  ['searchClass','sortClass','levelClass'].forEach(id => $(id).oninput = renderClassTable);
-  renderGradeTable();
+    return `<tr><td>${esc(c)}</td><td>${s.count}</td><td>${fmt(s.avg)}</td><td class="${s.gap>=0?'gap-pos':'gap-neg'}">${s.gap>0?'+':''}${fmt(s.gap)}</td><td>${fmt(s.attainment)}</td><td>${fmt(s.pass_rate)}</td></tr>`}).join('');
+  $('tblTop').innerHTML = DATA.top10.map(s=>`<tr><td>${s.rank_grade}</td><td>${esc(s.name)}</td><td>${esc(s.class)}</td><td>${fmt(s.pct)}</td></tr>`).join('');
+  $('supportTitle').textContent = `يحتاجون متابعة (أقل من ${fmt(DATA.support_threshold)}٪)`;
+  $('tblSupport').innerHTML = DATA.needs_support.map(s=>`<tr><td>${esc(s.name)}</td><td>${esc(s.class)}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td></tr>`).join('')
+    || '<tr><td colspan="4" style="text-align:center;color:var(--muted)">لا يوجد</td></tr>';
+}
 
-  // الأوائل والطلاب الذين يحتاجون متابعة
-  $('tblTop').innerHTML = DATA.top10.map(s=>`<tr>${rankCell(s.rank_grade)}<td>${s.name}</td><td>${s.class}</td><td>${fmt(s.pct)}</td></tr>`).join('');
-  $('supportTitle').textContent = `طلاب يحتاجون متابعة (أقل من ${fmt(DATA.support_threshold)}%)`;
-  $('supportLead').textContent = DATA.needs_support.length ? `${DATA.needs_support.length} طالب` : 'لا يوجد طلاب تحت الحد.';
-  $('tblSupport').innerHTML = DATA.needs_support.map(s=>`<tr><td>${s.name}</td><td>${s.class}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td></tr>`).join('');
-
+/* ---------------- التجميع ---------------- */
+function renderAll(){
+  $('results').classList.remove('hidden');
+  const tabs = $('tabs'); tabs.innerHTML = '';
+  [...DATA.classes, '__grade'].forEach(key => {
+    const b = document.createElement('button'); b.className = 'tab';
+    b.textContent = key === '__grade' ? 'الصف كامل' : 'فصل ' + key;
+    b.onclick = () => { scope = key; [...tabs.children].forEach(x => x.classList.toggle('active', x === b)); renderReport(); };
+    tabs.appendChild(b);
+  });
+  $('levelFilter').innerHTML = '<option value="">كل التقديرات</option>' + DATA.levels.map(l => `<option value="${l}">${l}</option>`).join('');
+  $('search').oninput = renderReport; $('levelFilter').oninput = renderReport;
+  tabs.children[0].click();
+  renderAnalytics();
+  renderCerts();
+  if (DATA.warnings.length) showError(DATA.warnings.join(' | '));
   $('results').scrollIntoView({behavior:'smooth'});
 }
 
-function selectTab(key){
-  [...$('tabs').children].forEach(b => b.classList.toggle('active', b.textContent === (key==='__grade'?'الصف كامل':'فصل '+key)));
-  const isGrade = key === '__grade';
-  $('paneClass').classList.toggle('hidden', isGrade);
-  $('paneGrade').classList.toggle('hidden', !isGrade);
-  if (isGrade) return;
-  currentClass = key;
-  const st = DATA.class_stats[key];
-  $('classTitle').textContent = `فصل ${key}`;
-  const gapHtml = `<div class="stat"><b class="${st.gap>=0?'gap-pos':'gap-neg'}">${st.gap>0?'+':''}${fmt(st.gap)}</b><span>الفرق عن متوسط الصف</span></div>`;
-  $('classStats').innerHTML = statCards(st, gapHtml);
-  barLevels('chartClassLevels', st.levels);
-  barHist('chartClassHist', DATA.histogram.classes[key]);
-  renderClassTable();
+/* ---------------- التصدير ---------------- */
+function canvasesToImages(node){
+  node.querySelectorAll('canvas').forEach(cv => {
+    const src = $(cv.id); if (!src) return;
+    const img = document.createElement('img'); img.src = src.toDataURL('image/png'); img.style.width = '100%';
+    cv.replaceWith(img);
+  });
 }
-function fillSelect(id, pairs, firstLabel){
-  $(id).innerHTML = `<option value="">${firstLabel}</option>` + pairs.map(([v,t]) => `<option value="${v}">${t}</option>`).join('');
+async function savePdf(node, filename, orientation, status){
+  status.textContent = 'جارٍ إنشاء الملف…';
+  $('exportRoot').appendChild(node);
+  try {
+    await html2pdf().set({
+      margin: 0, filename,
+      image: {type:'jpeg', quality:0.96},
+      html2canvas: {scale:2, useCORS:true, letterRendering:true},
+      jsPDF: {unit:'mm', format:'a4', orientation},
+      pagebreak: {mode:['css','legacy']},
+    }).from(node).save();
+    status.textContent = 'تم التحميل.';
+  } catch (e) { status.textContent = 'تعذّر إنشاء الملف.'; console.error(e); }
+  finally { node.remove(); setTimeout(() => status.textContent = '', 3000); }
 }
-function sortRows(rows, mode, rankKey){
-  const by = {
-    rank:     (a,b) => a[rankKey]-b[rankKey] || a.name.localeCompare(b.name,'ar'),
-    rank_asc: (a,b) => b[rankKey]-a[rankKey] || a.name.localeCompare(b.name,'ar'),
-    name:     (a,b) => a.name.localeCompare(b.name,'ar'),
-    class:    (a,b) => a.class.localeCompare(b.class,'ar') || a.rank_class-b.rank_class,
-  };
-  return rows.sort(by[mode] || by.rank);
-}
-function renderClassTable(){
-  const q = $('searchClass').value.trim(), lvl = $('levelClass').value;
-  let rows = DATA.students.filter(s => s.class===currentClass && s.name.includes(q) && (!lvl || s.level===lvl));
-  rows = sortRows(rows, $('sortClass').value, 'rank_class');
-  $('tblClass').innerHTML = rows.map(s=>`<tr>${rankCell(s.rank_class)}<td>${s.name}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td><td>${lvlBadge(s.level)}</td><td>${s.rank_grade}</td></tr>`).join('')
-    || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">لا توجد نتائج مطابقة</td></tr>';
-}
-function renderGradeTable(){
-  const q = $('searchGrade').value.trim(), cls = $('filterClass').value, lvl = $('levelGrade').value;
-  let rows = DATA.students.filter(s => s.name.includes(q) && (!cls || s.class===cls) && (!lvl || s.level===lvl));
-  rows = sortRows(rows, $('sortGrade').value, 'rank_grade');
-  $('tblGrade').innerHTML = rows.map(s=>`<tr>${rankCell(s.rank_grade)}<td>${s.name}</td><td>${s.class}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td><td>${lvlBadge(s.level)}</td><td>${s.rank_class}</td></tr>`).join('')
-    || '<tr><td colspan="7" style="text-align:center;color:var(--muted)">لا توجد نتائج مطابقة</td></tr>';
-}
-
-/* تصدير النتائج إلى Excel */
-$('export').onclick = async () => {
+$('pdf').onclick = async () => {
+  const m = meta(), node = document.createElement('div');
+  if ($('x_report').checked) node.insertAdjacentHTML('beforeend', statsPage(m));
+  if ($('x_list').checked) node.insertAdjacentHTML('beforeend', listPages(m, filteredRows()));
+  if ($('x_analytics').checked) {
+    const a = $('analytics').cloneNode(true); canvasesToImages(a);
+    a.style.cssText = 'width:210mm;padding:12mm;background:#fff;page-break-before:always';
+    node.appendChild(a);
+  }
+  if (!node.children.length) return $('pdfStatus').textContent = 'اختر قسمًا واحدًا على الأقل.';
+  const name = scope === '__grade' ? 'الصف_كامل' : scope;
+  await savePdf(node, `تحليل_${m.subject}_${name}.pdf`, 'portrait', $('pdfStatus'));
+};
+$('certPdf').onclick = async () => {
+  if (!excellentStudents().length) return $('certStatus').textContent = 'لا توجد شهادات لإنشائها.';
+  const node = document.createElement('div'); node.innerHTML = $('certs').innerHTML;
+  await savePdf(node, `شهادات_التفوق_${meta().subject}.pdf`, 'landscape', $('certStatus'));
+};
+$('excel').onclick = async () => {
   const res = await fetch('/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(DATA)});
   if (!res.ok) return showError('فشل التصدير.');
   const blob = await res.blob();
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'نتائج_الصف_السادس.xlsx'; a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'نتائج_التحليل.xlsx'; a.click();
 };
 </script>
 </body>
