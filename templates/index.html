@@ -134,9 +134,12 @@
   .cert[data-theme="purple"]{--c1:#5B3E8E;--c2:#9B7EC8;--c3:#C9A227;--pink:#D0578A;--soft:#EFE7F8;--cream:var(--sheet)}
   .cert[data-theme="teal"]{--c1:#0F6E62;--c2:#4FBFAE;--c3:#C9A227;--pink:#C2185B;--soft:#E1F3EF;--cream:var(--sheet)}
   .cert[data-theme="rose"]{--c1:#A8386B;--c2:#E191B4;--c3:#C9A227;--pink:#8E5BA8;--soft:#FBE8F0;--cream:var(--sheet)}
-  .cert .band-out{position:absolute;inset:0;border:9mm solid var(--c2);border-radius:10mm;opacity:.9}
-  .cert .band-in{position:absolute;inset:8mm;border:1.2mm solid var(--c3);border-radius:5mm}
-  .cert .band-dash{position:absolute;inset:11mm;border:.5mm dashed var(--c2);border-radius:4mm;opacity:.75}
+  .cert .band-out{position:absolute;inset:0;border-radius:11mm;
+                  background:linear-gradient(138deg,var(--c2),var(--c1) 42%,var(--c2) 72%,var(--c1))}
+  .cert .band-fill{position:absolute;inset:9mm;border-radius:6mm;background:var(--cream)}
+  .cert .band-in{position:absolute;inset:7.6mm;border:1.1mm solid var(--c3);border-radius:7mm}
+  .cert .band-dash{position:absolute;inset:12mm;border:.5mm dashed var(--c2);border-radius:4mm;opacity:.7}
+  .cert .corners{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .cert .deco{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .cert .inner{position:absolute;inset:14mm 18mm 12mm;display:flex;flex-direction:column;text-align:center;z-index:2}
   .cert .org{position:absolute;top:0;right:0;max-width:66mm;text-align:right;font-weight:700;
@@ -146,15 +149,16 @@
   .cert .title{font-family:Amiri,serif;font-size:4.2rem;font-weight:700;color:var(--c1);margin:9mm 0 0;line-height:1.15}
   .cert .title .fl{display:inline-block;vertical-align:middle;margin:0 6mm}
   .cert .rule{margin:1mm auto 6mm}
-  .cert .body{font-size:1.28rem;line-height:2.45;color:#2B2233;font-weight:500;
-              max-width:168mm;margin:0 auto;padding:0}
+  .cert .body{font-size:1.3rem;color:#2B2233;font-weight:500;max-width:172mm;margin:0 auto}
+  .cert .body p{margin:0 0 7mm}
+  .cert .enddiv{margin:2mm 0 0}
   .cert .name{font-family:Amiri,serif;font-size:1.95rem;font-weight:700;color:var(--c1);
               border-bottom:2px dotted var(--c2);padding:0 6mm 1mm;margin:0 2mm}
   .cert .cls{color:var(--c2);font-weight:600;font-size:.95rem}
   .cert .pct{color:var(--c1);font-weight:700}
-  .cert .teacher{color:var(--pink);font-weight:600;font-size:1.08rem;margin-top:6mm}
+  .cert .teacher{color:var(--pink);font-weight:600;font-size:1.1rem;margin:9mm 0 0!important}
   .cert .sig{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;
-             font-weight:700;color:var(--c1);font-size:1.02rem;padding:0 4mm}
+             font-weight:700;color:var(--c1);font-size:1.04rem;padding:0 6mm 2mm}
   .cert .sig .date{color:var(--c2);font-weight:600}
   #printArea{display:none}
   @media print{
@@ -322,7 +326,7 @@
 <script>
 const LEVEL_COLORS = ['#4CBF8E','#2AA79B','#3D9BE9','#F39A3C','#F26D6D'];
 const ADMIN = 'الإدارة العامة للتعليم بمنطقة الرياض';
-const ROWS_PER_PAGE = 21;
+const ROWS_PER_PAGE = 18;
 let DATA = null, scope = null;   // scope: اسم الفصل أو '__grade'
 const charts = {};
 const $ = id => document.getElementById(id);
@@ -531,6 +535,20 @@ function certDecor(){
     </g>
   </g>`;
 
+  // غصن غار: ساق منحنية بأوراق مدببة متقابلة
+  const laurel = (x,y,sc,rot,f) => {
+    const petal = (px,py,a,k) =>
+      `<path d="M0 0Q13-5.5 26 0Q13 5.5 0 0Z" fill="${f}" transform="translate(${px} ${py}) rotate(${a}) scale(${k})"/>`;
+    const stops = [.16, .40, .64, .88];
+    const leaves = stops.map((t,i) => {
+      const px = t*46, py = -t*66, k = 1.45 - t*0.45;
+      return petal(px + 2, py - 2, -58 + i*7, k) + petal(px - 4, py + 5, 128 + i*7, k * .9);
+    }).join('');
+    return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${sc})" opacity=".85">
+      <path d="M0 0C7-25 22-48 48-66" fill="none" stroke="${f}" stroke-width="3.2" stroke-linecap="round"/>
+      ${leaves}</g>`;
+  };
+
   const symbols = `<g fill="var(--c2)" opacity=".55" font-size="34" font-weight="700" font-family="serif">
     <text x="150" y="330">+</text><text x="120" y="405">÷</text><text x="165" y="470">×</text></g>`;
 
@@ -543,11 +561,32 @@ function certDecor(){
     heart(120,890,12,'var(--c2)',.7), heart(232,760,10,'#F0A8C4',.55),
     dot(258,178,5,'var(--c2)'), dot(1150,700,5,'var(--c3)'), dot(152,470,5,'var(--pink)',.6),
     dot(1340,590,5,'var(--c2)',.6), dot(1032,900,4,'var(--c3)',.7),
+    laurel(1104,832,1.15,-26,'var(--c2)'), laurel(1326,830,1.1,26,'var(--c2)'),
+    laurel(486,922,.7,-116,'var(--c3)'),
   ].join('');
 
   return `<svg class="deco" viewBox="0 0 1400 990" preserveAspectRatio="none">
     ${bunting}${calculator}${trophy}${books(1120,858,['النجاح','التميز','الرياضيات'],.82)}${notebook}${symbols}${sprinkles}
   </svg>`;
+}
+function certCorners(){
+  // زخرفة لولبية ذهبية في الزوايا الأربع داخل الإطار
+  const swirl = `<g fill="none" stroke="var(--c3)" stroke-width="2.6" stroke-linecap="round" opacity=".85">
+    <path d="M0 34C0 14 14 0 34 0"/><path d="M6 46C6 22 22 6 46 6" opacity=".55"/>
+    <path d="M34 0c-10 6-14 14-8 20 5 5 12 0 9-6-3-5-11-3-13 4"/></g>`;
+  return `<svg class="corners" viewBox="0 0 1400 990">
+    <g transform="translate(58 58)">${swirl}</g>
+    <g transform="translate(1342 58) scale(-1 1)">${swirl}</g>
+    <g transform="translate(58 932) scale(1 -1)">${swirl}</g>
+    <g transform="translate(1342 932) scale(-1 -1)">${swirl}</g>
+  </svg>`;
+}
+function endDivider(){
+  return `<svg class="enddiv" width="330" height="22" viewBox="0 0 330 22" fill="none">
+    <path d="M14 11h96M220 11h96" stroke="var(--c2)" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 9"/>
+    <path d="M110 11c12-9 20 7 30 0M190 11c-12-9-20 7-30 0" stroke="var(--c2)" stroke-width="2.2" stroke-linecap="round"/>
+    <path transform="translate(165 10)" fill="var(--c1)" d="M0 7C-8 1-9-4-5.5-7-3-9 0-7 0-4.5 0-7 3-9 5.5-7 9-4 8 1 0 7Z"/>
+    <circle cx="6" cy="11" r="2" fill="var(--c2)"/><circle cx="324" cy="11" r="2" fill="var(--c2)"/></svg>`;
 }
 function titleFlourish(dir){
   return `<svg class="fl" width="86" height="46" viewBox="0 0 86 46" fill="none"
@@ -565,26 +604,29 @@ function certRule(){
 function certHTML(s, m){
   const she = m.female, theme = $('certTheme').value, showPct = $('certPct').checked;
   const subject = m.subject === '—' ? 'المادة' : m.subject;
-  const examPhrase = m.exam ? `${m.exam} لمادة ${subject}` : `اختبار مادة ${subject}`;
+  const examPhrase = m.exam ? `${m.exam} لمادة ${subject}` : `اختبار ${subject}`;
   const pctPhrase = showPct ? ` <span class="pct">بنسبة ${fmt(s.pct)}٪</span>` : '';
+  const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
   return `<div class="cert" data-theme="${theme}">
-    <div class="band-out"></div><div class="band-in"></div><div class="band-dash"></div>
+    <div class="band-out"></div><div class="band-fill"></div>
+    <div class="band-in"></div><div class="band-dash"></div>
+    ${certCorners()}
     ${certDecor()}
     <div class="inner">
       <div class="org">
         <img src="/logo" alt="وزارة التعليم" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'orgfallback',textContent:'وزارة التعليم'}))">
-        ${esc(m.admin)}<br>${esc(m.school || '')}
+        ${esc(arabicDigits(m.admin))}<br>${esc(arabicDigits(m.school || ''))}
       </div>
       <div class="title">${titleFlourish('l')}شكر وتقدير${titleFlourish('r')}</div>
       ${certRule()}
       <div class="body">
-        ${she ? 'يسر معلمة' : 'يسر معلم'} ${esc(subject)} أن ${she ? 'تشكر' : 'يشكر'}
-        ${she ? 'الطالبة الرائعة' : 'الطالب الرائع'}
-        <span class="name">${esc(s.name)}</span><span class="cls">${esc(s.class) ? `(${esc(s.class)})` : ''}</span><br>
-        ${she ? 'وأسرتها الكريمة على تفوقها في' : 'وأسرته الكريمة على تفوقه في'} ${esc(examPhrase)}${pctPhrase}،<br>
-        مع تمنياتي ${she ? 'لها' : 'له'} بالاستمرار في طريق التفوق والنجاح.
+        <p>${she ? 'يسر معلمة' : 'يسر معلم'} ${esc(subject)} أن ${she ? 'تشكر الطالبة الرائعة' : 'يشكر الطالب الرائع'}
+           <span class="name">${esc(s.name)}</span><span class="cls">${esc(s.class) ? `(${esc(s.class)})` : ''}</span></p>
+        <p>${she ? 'وأسرتها الكريمة على تفوقها في' : 'وأسرته الكريمة على تفوقه في'} ${esc(examPhrase)}${pctPhrase}</p>
+        <p>مع تمنياتي ${she ? 'لها' : 'له'} بالاستمرار في طريق التفوق والنجاح.</p>
+        <p class="teacher">مع حبي وتقديري لكم/ ${she ? 'معلمتكم' : 'معلمكم'} ${esc(m.teacher || '................')}</p>
       </div>
-      <div class="teacher">مع حبي وتقديري لكم/ ${she ? 'معلمتكم' : 'معلمكم'} ${esc(m.teacher || '................')}</div>
+      ${endDivider()}
       <div class="sig">
         <span class="date">${m.date ? 'التاريخ: ' + esc(m.date) : ''}</span>
         <span>${she ? 'مديرة' : 'مدير'} المدرسة/ ${esc(m.principal || '................')}</span>
