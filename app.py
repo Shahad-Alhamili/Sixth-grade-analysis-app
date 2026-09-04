@@ -268,7 +268,7 @@ def analyze():
 
 @app.route("/export", methods=["POST"])
 def export():
-    """تصدير النتائج إلى ملف Excel: ترتيب الصف، شيت لكل فصل، وشيت إحصائيات."""
+    """تصدير النتائج إلى ملف Excel: ترتيب الصف، شيت لكل فصل، الإحصائيات، الأوائل، والطلاب الذين يحتاجون متابعة."""
     payload = request.get_json(silent=True) or {}
     students = payload.get("students", [])
     classes = payload.get("classes", [])
@@ -303,6 +303,17 @@ def export():
                  grade_stats.get("max"), grade_stats.get("min"), grade_stats.get("pass_rate")]
                 + [grade_stats.get("levels", {}).get(l, 0) for l in LEVEL_NAMES])
     style_sheet(ws, headers, rows)
+
+    top10 = payload.get("top10", [])
+    style_sheet(wb.create_sheet("الأوائل"),
+                ["الترتيب", "اسم الطالب", "الفصل", "الدرجة", "النسبة %"],
+                [[s["rank_grade"], s["name"], s["class"], s["score"], s["pct"]] for s in top10])
+
+    support = payload.get("needs_support", [])
+    threshold = payload.get("support_threshold", "")
+    style_sheet(wb.create_sheet("يحتاجون متابعة"),
+                ["اسم الطالب", "الفصل", "الدرجة", f"النسبة % (أقل من {threshold})", "المستوى"],
+                [[s["name"], s["class"], s["score"], s["pct"], s["level"]] for s in support])
 
     buf = io.BytesIO()
     wb.save(buf)
