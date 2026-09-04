@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-نظام تحليل درجات الصف السادس الابتدائي
---------------------------------------
-تطبيق Flask يقرأ ملف درجات (Excel/CSV)، يحسب النسب المئوية والمستويات،
+نظام تحليل نتائج الاختبارات - ثيم وزارة التعليم
+-------------------------------------------------
+تطبيق Flask يقرأ ملف درجات (Excel/CSV)، يحسب النسب المئوية والتقديرات،
 ويرتب الطلاب على مستوى الفصل وعلى مستوى الصف، مع إحصائيات وتصدير للنتائج.
 
 صيغ الملف المدعومة:
   1. شيت واحد يحتوي أعمدة: اسم الطالب، الفصل، الدرجة
   2. شيت لكل فصل (اسم الشيت = اسم الفصل) يحتوي أعمدة: اسم الطالب، الدرجة
 يمكن الجمع بين الصيغتين في الملف نفسه؛ إذا وُجد عمود الفصل داخل الشيت فهو الأولوية.
+
+الترتيب: متسلسل (1، 2، 3...) حسب النسبة تنازليًا، وعند التساوي حسب الاسم أبجديًا.
 
 التشغيل محليًا:
   python app.py
@@ -26,11 +28,13 @@ from openpyxl.utils import get_column_letter
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # الحد الأقصى لحجم الملف المرفوع: 10MB
 
-LEVEL_NAMES = ["ممتاز", "جيد جدًا", "جيد", "مقبول", "غير مجتاز"]
+# التقديرات حسب نموذج تحليل النتائج المعتمد في وزارة التعليم
+LEVEL_NAMES = ["ممتاز", "جيد جدًا", "جيد", "مقبول", "ضعيف"]
+DEFAULT_THRESHOLDS = (("t_excellent", 90), ("t_vgood", 80), ("t_good", 70), ("t_pass", 50))
 
 # الأسماء المقبولة لكل عمود (عربي/إنجليزي)، تُطابق بعد التوحيد
 COLUMN_ALIASES = {
-    "name": ["اسم الطالب", "الاسم", "اسم", "الطالب", "name", "student", "student name"],
+    "name": ["اسم الطالب", "اسم الطالبة", "الاسم", "اسم", "الطالب", "الطالبة", "name", "student", "student name"],
     "class": ["الفصل", "فصل", "الشعبة", "شعبة", "class", "section"],
     "score": ["الدرجة", "درجة", "الدرجه", "درجه", "المجموع", "score", "grade", "mark", "total"],
 }
@@ -76,16 +80,29 @@ def to_number(value):
 
 
 def level_of(pct, thresholds):
-    """تحديد المستوى بناءً على النسبة المئوية وحدود المستويات (تنازلية)."""
+    """تحديد التقدير بناءً على النسبة المئوية وحدود التقديرات (تنازلية)."""
     for threshold, name in zip(thresholds, LEVEL_NAMES):
         if pct >= threshold:
             return name
     return LEVEL_NAMES[-1]
 
 
-def group_stats(df, pass_threshold):
+def level_ranges(thresholds, total):
+    """نطاق الدرجات الخام لكل تقدير، بالشكل المستخدم في نموذج الوزارة (مثال: 17.1 - 19)."""
+    bounds = [round(t / 100 * total, 2) for t in thresholds]
+    ranges = {}
+    upper = total
+    for name, low in zip(LEVEL_NAMES[:-1], bounds):
+        ranges[name] = {"low": low, "high": upper}
+        upper = round(low - 0.01, 2)
+    ranges[LEVEL_NAMES[-1]] = {"low": 0, "high": upper}
+    return ranges
+
+
+def group_stats(df, pass_threshold, total):
     """إحصائيات وصفية لمجموعة من الطلاب (فصل أو الصف كامل)."""
     pct = df["pct"]
+    score = df["score"]
     n = len(df)
     return {
         "count": int(n),
@@ -94,16 +111,19 @@ def group_stats(df, pass_threshold):
         "std": round(float(pct.std(ddof=0)), 2) if n > 1 else 0,
         "max": round(float(pct.max()), 2) if n else 0,
         "min": round(float(pct.min()), 2) if n else 0,
+        "score_max": round(float(score.max()), 2) if n else 0,
+        "score_min": round(float(score.min()), 2) if n else 0,
+        "score_avg": round(float(score.mean()), 2) if n else 0,
+        "score_sum": round(float(score.sum()), 2) if n else 0,
+        # نسبة التحصيل = مجموع الدرجات ÷ (عدد الطلاب × الدرجة الكلية)
+        "attainment": round(float(score.sum() / (n * total) * 100), 2) if n else 0,
         "pass_rate": round(float((pct >= pass_threshold).mean() * 100), 1) if n else 0,
         "levels": {name: int((df["level"] == name).sum()) for name in LEVEL_NAMES},
     }
 
 
 def read_sheets(file):
-    """
-    قراءة الملف المرفوع وإرجاع قائمة (اسم الشيت، DataFrame).
-    ملفات CSV تُعامل كشيت واحد.
-    """
+    """قراءة الملف المرفوع وإرجاع قائمة (اسم الشيت، DataFrame). ملفات CSV تُعامل كشيت واحد."""
     if file.filename.lower().endswith(".csv"):
         return [("الدرجات", pd.read_csv(file))]
     sheets = pd.read_excel(file, sheet_name=None)
@@ -147,7 +167,7 @@ def build_dataset(sheets):
 
 def style_sheet(ws, headers, rows):
     """كتابة جدول منسق في ورقة عمل: رؤوس ملونة، حدود، محاذاة، اتجاه من اليمين لليسار."""
-    head_fill = PatternFill("solid", fgColor="0B5D3B")
+    head_fill = PatternFill("solid", fgColor="1E9E8A")
     head_font = Font(bold=True, color="FFFFFF", name="Arial")
     thin = Side(style="thin", color="C8D3CC")
     border = Border(left=thin, right=thin, top=thin, bottom=thin)
@@ -185,10 +205,9 @@ def analyze():
     if not total or total <= 0:
         return jsonify(error="الدرجة الكلية يجب أن تكون رقمًا أكبر من صفر."), 400
 
-    thresholds = [to_number(request.form.get(k, d)) for k, d in
-                  (("t_excellent", 90), ("t_vgood", 80), ("t_good", 65), ("t_pass", 50))]
+    thresholds = [to_number(request.form.get(k, d)) for k, d in DEFAULT_THRESHOLDS]
     if any(t is None for t in thresholds) or thresholds != sorted(thresholds, reverse=True):
-        return jsonify(error="حدود المستويات غير صحيحة؛ يجب أن تكون تنازلية "
+        return jsonify(error="حدود التقديرات غير صحيحة؛ يجب أن تكون تنازلية "
                              "(ممتاز > جيد جدًا > جيد > مقبول)."), 400
 
     support_threshold = to_number(request.form.get("support", 60)) or 60
@@ -216,18 +235,20 @@ def analyze():
         return jsonify(error=f"يوجد {len(over)} طالب درجته أعلى من الدرجة الكلية ({total:g})، "
                              f"مثال: {over.iloc[0]['name']} = {over.iloc[0]['score']:g}."), 400
 
-    # الحسابات الأساسية (الترتيب متسلسل بدون فجوات؛ المتساوون يأخذون نفس الرقم)
+    # الحسابات الأساسية
     data["pct"] = (data["score"] / total * 100).round(2)
     data["level"] = data["pct"].map(lambda p: level_of(p, thresholds))
-    data["rank_grade"] = data["pct"].rank(method="dense", ascending=False).astype(int)
-    data["rank_class"] = data.groupby("class")["pct"].rank(method="dense", ascending=False).astype(int)
-    data = data.sort_values(["rank_grade", "name"]).reset_index(drop=True)
+
+    # ترتيب متسلسل بدون تكرار: النسبة تنازليًا ثم الاسم أبجديًا
+    data = data.sort_values(["pct", "name"], ascending=[False, True]).reset_index(drop=True)
+    data["rank_grade"] = range(1, len(data) + 1)
+    data["rank_class"] = data.groupby("class").cumcount() + 1
 
     classes = sorted(data["class"].unique().tolist())
-    grade_stats = group_stats(data, thresholds[3])
+    grade_stats = group_stats(data, thresholds[3], total)
     class_stats = {}
     for c in classes:
-        st = group_stats(data[data["class"] == c], thresholds[3])
+        st = group_stats(data[data["class"] == c], thresholds[3], total)
         st["gap"] = round(st["avg"] - grade_stats["avg"], 2)  # الفرق عن متوسط الصف
         class_stats[c] = st
 
@@ -252,6 +273,7 @@ def analyze():
     return jsonify({
         "total": total,
         "thresholds": thresholds,
+        "ranges": level_ranges(thresholds, total),
         "support_threshold": support_threshold,
         "levels": LEVEL_NAMES,
         "classes": classes,
@@ -282,43 +304,42 @@ def export():
     ws = wb.active
     ws.title = "ترتيب الصف"
     style_sheet(ws,
-                ["الترتيب على الصف", "اسم الطالب", "الفصل", "الدرجة", f"النسبة % (من {total})", "المستوى"],
+                ["م", "اسم الطالب", "الفصل", "الدرجة", f"النسبة % (من {total})", "التقدير"],
                 [[s["rank_grade"], s["name"], s["class"], s["score"], s["pct"], s["level"]] for s in students])
 
     for c in classes:
         ws = wb.create_sheet(SHEET_TITLE_INVALID.sub("-", f"فصل {c}")[:31])
         rows = sorted((s for s in students if s["class"] == c), key=lambda s: s["rank_class"])
         style_sheet(ws,
-                    ["الترتيب على الفصل", "اسم الطالب", "الدرجة", "النسبة %", "المستوى", "الترتيب على الصف"],
+                    ["م", "اسم الطالب", "الدرجة", "النسبة %", "التقدير", "الترتيب على الصف"],
                     [[s["rank_class"], s["name"], s["score"], s["pct"], s["level"], s["rank_grade"]] for s in rows])
 
     ws = wb.create_sheet("الإحصائيات")
-    headers = ["المجموعة", "عدد الطلاب", "المتوسط %", "الوسيط", "الأعلى", "الأدنى", "نسبة الاجتياز %"] + LEVEL_NAMES
+    headers = ["المجموعة", "عدد الطلاب", "أعلى درجة", "أقل درجة", "متوسط الدرجات", "نسبة التحصيل %",
+               "مجموع الدرجات", "نسبة الاجتياز %"] + LEVEL_NAMES
     rows = []
-    for c in classes:
-        st = class_stats.get(c, {})
-        rows.append([f"فصل {c}", st.get("count"), st.get("avg"), st.get("median"), st.get("max"), st.get("min"),
-                     st.get("pass_rate")] + [st.get("levels", {}).get(l, 0) for l in LEVEL_NAMES])
-    rows.append(["الصف كامل", grade_stats.get("count"), grade_stats.get("avg"), grade_stats.get("median"),
-                 grade_stats.get("max"), grade_stats.get("min"), grade_stats.get("pass_rate")]
-                + [grade_stats.get("levels", {}).get(l, 0) for l in LEVEL_NAMES])
+    groups = [(f"فصل {c}", class_stats.get(c, {})) for c in classes] + [("الصف كامل", grade_stats)]
+    for label, st in groups:
+        rows.append([label, st.get("count"), st.get("score_max"), st.get("score_min"), st.get("score_avg"),
+                     st.get("attainment"), st.get("score_sum"), st.get("pass_rate")]
+                    + [st.get("levels", {}).get(l, 0) for l in LEVEL_NAMES])
     style_sheet(ws, headers, rows)
 
     top10 = payload.get("top10", [])
     style_sheet(wb.create_sheet("الأوائل"),
-                ["الترتيب", "اسم الطالب", "الفصل", "الدرجة", "النسبة %"],
+                ["م", "اسم الطالب", "الفصل", "الدرجة", "النسبة %"],
                 [[s["rank_grade"], s["name"], s["class"], s["score"], s["pct"]] for s in top10])
 
     support = payload.get("needs_support", [])
     threshold = payload.get("support_threshold", "")
     style_sheet(wb.create_sheet("يحتاجون متابعة"),
-                ["اسم الطالب", "الفصل", "الدرجة", f"النسبة % (أقل من {threshold})", "المستوى"],
+                ["اسم الطالب", "الفصل", "الدرجة", f"النسبة % (أقل من {threshold})", "التقدير"],
                 [[s["name"], s["class"], s["score"], s["pct"], s["level"]] for s in support])
 
     buf = io.BytesIO()
     wb.save(buf)
     buf.seek(0)
-    return send_file(buf, as_attachment=True, download_name="نتائج_الصف_السادس.xlsx",
+    return send_file(buf, as_attachment=True, download_name="نتائج_التحليل.xlsx",
                      mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
@@ -327,9 +348,9 @@ def template():
     """نموذج Excel جاهز: شيت لكل فصل، واسم الشيت هو اسم الفصل."""
     wb = Workbook()
     wb.remove(wb.active)
-    for cls, rows in (("6-أ", [["محمد أحمد", 45], ["سعد فهد", 42]]),
-                      ("6-ب", [["خالد سعد", 38], ["عمر خالد", 30]]),
-                      ("6-ج", [["فهد ناصر", 47], ["يوسف علي", 29]])):
+    for cls, rows in (("6-أ", [["نورة محمد", 45], ["سارة فهد", 42]]),
+                      ("6-ب", [["ريم خالد", 38], ["هند عمر", 30]]),
+                      ("6-ج", [["لمى ناصر", 47], ["جود علي", 29]])):
         style_sheet(wb.create_sheet(cls), ["اسم الطالب", "الدرجة"], rows)
     buf = io.BytesIO()
     wb.save(buf)
