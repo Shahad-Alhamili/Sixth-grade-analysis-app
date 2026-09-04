@@ -69,6 +69,7 @@
   .lvl{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;color:#fff;font-weight:500}
   .search{margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap}
   .search input[type=search]{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+  .search select{width:auto;min-width:150px}
   .gap-pos{color:var(--green-mid)} .gap-neg{color:var(--red)}
   .hidden{display:none}
   .note{font-size:.85rem;color:var(--muted);margin-top:8px}
@@ -170,7 +171,15 @@
           </div>
         </div>
         <h3 style="margin-top:22px">ترتيب طلاب الفصل من الأعلى إلى الأقل</h3>
-        <div class="search"><input type="search" id="searchClass" placeholder="بحث باسم الطالب…"></div>
+        <div class="search">
+          <input type="search" id="searchClass" placeholder="بحث باسم الطالب…">
+          <select id="sortClass">
+            <option value="rank">ترتيب: الأعلى نسبة</option>
+            <option value="rank_asc">ترتيب: الأقل نسبة</option>
+            <option value="name">ترتيب: الاسم</option>
+          </select>
+          <select id="levelClass"><option value="">كل المستويات</option></select>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>الترتيب</th><th>اسم الطالب</th><th>الدرجة</th><th>النسبة %</th><th>المستوى</th><th>ترتيبه على الصف</th></tr></thead>
@@ -208,7 +217,17 @@
           </div>
         </div>
         <h3 style="margin-top:22px">ترتيب طلاب الصف السادس كاملًا</h3>
-        <div class="search"><input type="search" id="searchGrade" placeholder="بحث باسم الطالب…"></div>
+        <div class="search">
+          <input type="search" id="searchGrade" placeholder="بحث باسم الطالب…">
+          <select id="filterClass"><option value="">كل الفصول</option></select>
+          <select id="sortGrade">
+            <option value="rank">ترتيب: الأعلى نسبة</option>
+            <option value="rank_asc">ترتيب: الأقل نسبة</option>
+            <option value="name">ترتيب: الاسم</option>
+            <option value="class">ترتيب: الفصل</option>
+          </select>
+          <select id="levelGrade"><option value="">كل المستويات</option></select>
+        </div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>الترتيب</th><th>اسم الطالب</th><th>الفصل</th><th>الدرجة</th><th>النسبة %</th><th>المستوى</th><th>ترتيبه في فصله</th></tr></thead>
@@ -243,7 +262,7 @@
   </div>
 </main>
 
-<footer>الترتيب يعتمد على النسبة المئوية، والطلاب المتساوون يأخذون نفس الترتيب.</footer>
+<footer>الترتيب يعتمد على النسبة المئوية؛ الطلاب المتساوون يأخذون نفس الرقم ويستمر الترقيم بعدهم بدون فجوات.</footer>
 
 <script>
 const LEVEL_COLORS = ['#0B5D3B','#2F8A5E','#C9A227','#E0913A','#B3261E'];
@@ -346,8 +365,12 @@ function render(){
     return `<tr><td>${c}</td><td>${s.count}</td><td>${fmt(s.avg)}</td>
       <td class="${s.gap>=0?'gap-pos':'gap-neg'}">${s.gap>0?'+':''}${fmt(s.gap)}</td>
       <td>${fmt(s.pass_rate)}</td><td>${fmt(s.max)}</td><td>${fmt(s.min)}</td></tr>`}).join('');
-  renderGradeTable('');
-  $('searchGrade').oninput = e => renderGradeTable(e.target.value);
+  fillSelect('filterClass', DATA.classes.map(c => [c, 'فصل ' + c]), 'كل الفصول');
+  fillSelect('levelGrade', DATA.levels.map(l => [l, l]), 'كل المستويات');
+  fillSelect('levelClass', DATA.levels.map(l => [l, l]), 'كل المستويات');
+  ['searchGrade','filterClass','sortGrade','levelGrade'].forEach(id => $(id).oninput = renderGradeTable);
+  ['searchClass','sortClass','levelClass'].forEach(id => $(id).oninput = renderClassTable);
+  renderGradeTable();
 
   // الأوائل والطلاب الذين يحتاجون متابعة
   $('tblTop').innerHTML = DATA.top10.map(s=>`<tr>${rankCell(s.rank_grade)}<td>${s.name}</td><td>${s.class}</td><td>${fmt(s.pct)}</td></tr>`).join('');
@@ -371,16 +394,33 @@ function selectTab(key){
   $('classStats').innerHTML = statCards(st, gapHtml);
   barLevels('chartClassLevels', st.levels);
   barHist('chartClassHist', DATA.histogram.classes[key]);
-  renderClassTable('');
-  $('searchClass').oninput = e => renderClassTable(e.target.value);
+  renderClassTable();
 }
-function renderClassTable(q){
-  const rows = DATA.students.filter(s => s.class===currentClass && s.name.includes(q)).sort((a,b)=>a.rank_class-b.rank_class);
-  $('tblClass').innerHTML = rows.map(s=>`<tr>${rankCell(s.rank_class)}<td>${s.name}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td><td>${lvlBadge(s.level)}</td><td>${s.rank_grade}</td></tr>`).join('');
+function fillSelect(id, pairs, firstLabel){
+  $(id).innerHTML = `<option value="">${firstLabel}</option>` + pairs.map(([v,t]) => `<option value="${v}">${t}</option>`).join('');
 }
-function renderGradeTable(q){
-  const rows = DATA.students.filter(s => s.name.includes(q));
-  $('tblGrade').innerHTML = rows.map(s=>`<tr>${rankCell(s.rank_grade)}<td>${s.name}</td><td>${s.class}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td><td>${lvlBadge(s.level)}</td><td>${s.rank_class}</td></tr>`).join('');
+function sortRows(rows, mode, rankKey){
+  const by = {
+    rank:     (a,b) => a[rankKey]-b[rankKey] || a.name.localeCompare(b.name,'ar'),
+    rank_asc: (a,b) => b[rankKey]-a[rankKey] || a.name.localeCompare(b.name,'ar'),
+    name:     (a,b) => a.name.localeCompare(b.name,'ar'),
+    class:    (a,b) => a.class.localeCompare(b.class,'ar') || a.rank_class-b.rank_class,
+  };
+  return rows.sort(by[mode] || by.rank);
+}
+function renderClassTable(){
+  const q = $('searchClass').value.trim(), lvl = $('levelClass').value;
+  let rows = DATA.students.filter(s => s.class===currentClass && s.name.includes(q) && (!lvl || s.level===lvl));
+  rows = sortRows(rows, $('sortClass').value, 'rank_class');
+  $('tblClass').innerHTML = rows.map(s=>`<tr>${rankCell(s.rank_class)}<td>${s.name}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td><td>${lvlBadge(s.level)}</td><td>${s.rank_grade}</td></tr>`).join('')
+    || '<tr><td colspan="6" style="text-align:center;color:var(--muted)">لا توجد نتائج مطابقة</td></tr>';
+}
+function renderGradeTable(){
+  const q = $('searchGrade').value.trim(), cls = $('filterClass').value, lvl = $('levelGrade').value;
+  let rows = DATA.students.filter(s => s.name.includes(q) && (!cls || s.class===cls) && (!lvl || s.level===lvl));
+  rows = sortRows(rows, $('sortGrade').value, 'rank_grade');
+  $('tblGrade').innerHTML = rows.map(s=>`<tr>${rankCell(s.rank_grade)}<td>${s.name}</td><td>${s.class}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td><td>${lvlBadge(s.level)}</td><td>${s.rank_class}</td></tr>`).join('')
+    || '<tr><td colspan="7" style="text-align:center;color:var(--muted)">لا توجد نتائج مطابقة</td></tr>';
 }
 
 /* تصدير النتائج إلى Excel */
