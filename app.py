@@ -216,11 +216,11 @@ def analyze():
         return jsonify(error=f"يوجد {len(over)} طالب درجته أعلى من الدرجة الكلية ({total:g})، "
                              f"مثال: {over.iloc[0]['name']} = {over.iloc[0]['score']:g}."), 400
 
-    # الحسابات الأساسية
+    # الحسابات الأساسية (الترتيب متسلسل بدون فجوات؛ المتساوون يأخذون نفس الرقم)
     data["pct"] = (data["score"] / total * 100).round(2)
     data["level"] = data["pct"].map(lambda p: level_of(p, thresholds))
-    data["rank_grade"] = data["pct"].rank(method="min", ascending=False).astype(int)
-    data["rank_class"] = data.groupby("class")["pct"].rank(method="min", ascending=False).astype(int)
+    data["rank_grade"] = data["pct"].rank(method="dense", ascending=False).astype(int)
+    data["rank_class"] = data.groupby("class")["pct"].rank(method="dense", ascending=False).astype(int)
     data = data.sort_values(["rank_grade", "name"]).reset_index(drop=True)
 
     classes = sorted(data["class"].unique().tolist())
