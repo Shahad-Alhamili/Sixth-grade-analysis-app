@@ -190,9 +190,36 @@ def style_sheet(ws, headers, rows):
 # ---------------------------------------------------------------------------
 # المسارات
 # ---------------------------------------------------------------------------
+LOGO_DIRS = ("static", ".")
+LOGO_EXTENSIONS = (".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif")
+
+
+def find_logo():
+    """البحث عن ملف شعار باسم logo بأي امتداد أو حالة أحرف، في مجلد static أو مجلد المشروع."""
+    base = os.path.dirname(os.path.abspath(__file__))
+    for folder in LOGO_DIRS:
+        path = os.path.join(base, folder)
+        if not os.path.isdir(path):
+            continue
+        for entry in sorted(os.listdir(path)):
+            stem, ext = os.path.splitext(entry)
+            if stem.lower() == "logo" and ext.lower() in LOGO_EXTENSIONS:
+                return os.path.join(path, entry)
+    return None
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/logo")
+def logo():
+    """إرجاع ملف الشعار إن وُجد؛ وإلا 404 ليعرض القالب النص البديل."""
+    path = find_logo()
+    if not path:
+        return "", 404
+    return send_file(path)
 
 
 @app.route("/analyze", methods=["POST"])
