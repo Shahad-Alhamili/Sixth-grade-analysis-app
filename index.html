@@ -100,14 +100,14 @@
 
   <section class="panel" id="setup">
     <h2>إعداد التحليل</h2>
-    <p class="lead">ارفعي ملف الدرجات وأدخلي الدرجة الكلية، والنظام يحسب النسب والمستويات والترتيب على مستوى الفصل والصف.</p>
+    <p class="lead">يتم رفع ملف الدرجات وإدخال الدرجة الكلية، ثم يحسب النظام النسب والمستويات والترتيب على مستوى الفصل والصف.</p>
 
     <div class="grid">
       <div style="grid-column:1/-1">
-        <label>ملف الدرجات (Excel أو CSV) — الأعمدة المطلوبة: <b>اسم الطالب</b>، <b>الفصل</b>، <b>الدرجة</b></label>
+        <label>ملف الدرجات (Excel أو CSV) — إما شيت لكل فصل (اسم الشيت = اسم الفصل) بعمودي <b>اسم الطالب</b> و<b>الدرجة</b>، أو شيت واحد بعمود <b>الفصل</b> إضافي</label>
         <div class="drop" id="drop">
           <input type="file" id="file" accept=".xlsx,.xls,.csv">
-          <div>اضغطي هنا أو اسحبي الملف لرفعه</div>
+          <div>اضغط هنا أو اسحب الملف لرفعه</div>
           <div class="file" id="fileName"></div>
         </div>
         <button class="btn-link" onclick="location.href='/template'">تحميل نموذج إكسل جاهز</button>
@@ -251,7 +251,7 @@ let DATA = null, currentClass = null;
 const charts = {};
 const $ = id => document.getElementById(id);
 
-/* رفع الملف */
+/* رفع الملف (اختيار أو سحب وإفلات) */
 const drop = $('drop'), fileInput = $('file');
 drop.onclick = () => fileInput.click();
 fileInput.onchange = () => $('fileName').textContent = fileInput.files[0]?.name || '';
@@ -262,7 +262,7 @@ drop.addEventListener('drop', ev => { fileInput.files = ev.dataTransfer.files; f
 /* التحليل */
 $('run').onclick = async () => {
   const err = $('error'); err.style.display = 'none';
-  if (!fileInput.files[0]) return showError('ارفعي ملف الإكسل أولًا.');
+  if (!fileInput.files[0]) return showError('يجب رفع ملف الدرجات أولًا.');
   const fd = new FormData();
   fd.append('file', fileInput.files[0]);
   ['total','support','t_excellent','t_vgood','t_good','t_pass'].forEach(k => fd.append(k, $(k).value));
@@ -273,12 +273,12 @@ $('run').onclick = async () => {
     if (!res.ok) return showError(json.error || 'حدث خطأ.');
     DATA = json;
     render();
-  } catch (e) { showError('تعذّر الاتصال بالخادم. تأكدي إن app.py شغّال.'); }
+  } catch (e) { showError('تعذّر الاتصال بالخادم.'); }
   finally { $('loading').classList.add('hidden'); }
 };
 function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display='block'; }
 
-/* أدوات */
+/* دوال مساعدة للعرض والرسوم */
 const fmt = n => Number(n).toLocaleString('ar-SA', {maximumFractionDigits:2});
 const lvlBadge = l => `<span class="lvl" style="background:${LEVEL_COLORS[DATA.levels.indexOf(l)]}">${l}</span>`;
 const rankCell = r => `<td class="rank ${r<=3?'medal':''}">${r}</td>`;
@@ -310,15 +310,16 @@ function barHist(id, values){
       scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{reverse:true,title:{display:true,text:'النسبة المئوية'}}}}});
 }
 
-/* العرض */
+/* بناء الصفحة بعد استلام النتائج */
 function render(){
   $('results').classList.remove('hidden');
   const g = DATA.grade_stats;
   $('summaryLead').textContent = `الدرجة الكلية ${fmt(DATA.total)} — ${DATA.classes.length} فصول — ${g.count} طالب` +
-     (DATA.skipped ? ` (تم تجاهل ${DATA.skipped} صف بدون درجة صحيحة)` : '');
+     (DATA.skipped ? ` (تم تجاهل ${DATA.skipped} صف بدون درجة صحيحة)` : '') +
+     (DATA.warnings.length ? ' — ' + DATA.warnings.join(' | ') : '');
   $('gradeStats').innerHTML = statCards(g);
 
-  // التبويبات
+  // تبويب لكل فصل + تبويب الصف كامل
   const tabs = $('tabs'); tabs.innerHTML = '';
   DATA.classes.forEach(c => {
     const b = document.createElement('button'); b.className='tab'; b.textContent = `فصل ${c}`;
@@ -328,7 +329,7 @@ function render(){
   all.onclick = () => selectTab('__grade'); tabs.appendChild(all);
   selectTab(DATA.classes[0]);
 
-  // الصف كامل
+  // رسوم وجداول الصف كامل
   barLevels('chartGradeLevels', g.levels);
   makeChart('chartClassCompare', {type:'bar',
     data:{labels:DATA.classes.map(c=>'فصل '+c),
@@ -348,10 +349,10 @@ function render(){
   renderGradeTable('');
   $('searchGrade').oninput = e => renderGradeTable(e.target.value);
 
-  // الأوائل والمتابعة
+  // الأوائل والطلاب الذين يحتاجون متابعة
   $('tblTop').innerHTML = DATA.top10.map(s=>`<tr>${rankCell(s.rank_grade)}<td>${s.name}</td><td>${s.class}</td><td>${fmt(s.pct)}</td></tr>`).join('');
   $('supportTitle').textContent = `طلاب يحتاجون متابعة (أقل من ${fmt(DATA.support_threshold)}%)`;
-  $('supportLead').textContent = DATA.needs_support.length ? `${DATA.needs_support.length} طالب` : 'ما فيه طلاب تحت الحد — ممتاز!';
+  $('supportLead').textContent = DATA.needs_support.length ? `${DATA.needs_support.length} طالب` : 'لا يوجد طلاب تحت الحد.';
   $('tblSupport').innerHTML = DATA.needs_support.map(s=>`<tr><td>${s.name}</td><td>${s.class}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td></tr>`).join('');
 
   $('results').scrollIntoView({behavior:'smooth'});
@@ -382,7 +383,7 @@ function renderGradeTable(q){
   $('tblGrade').innerHTML = rows.map(s=>`<tr>${rankCell(s.rank_grade)}<td>${s.name}</td><td>${s.class}</td><td>${fmt(s.score)}</td><td>${fmt(s.pct)}</td><td>${lvlBadge(s.level)}</td><td>${s.rank_class}</td></tr>`).join('');
 }
 
-/* التصدير */
+/* تصدير النتائج إلى Excel */
 $('export').onclick = async () => {
   const res = await fetch('/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(DATA)});
   if (!res.ok) return showError('فشل التصدير.');
