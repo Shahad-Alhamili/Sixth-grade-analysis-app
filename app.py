@@ -18,6 +18,7 @@
 import io
 import os
 import re
+from collections import deque
 
 import pandas as pd
 from flask import Flask, jsonify, render_template, request, send_file
@@ -213,13 +214,106 @@ def index():
     return render_template("index.html")
 
 
+# ذاكرة مؤقتة للشعار بعد إزالة الخلفية، مفتاحها المسار وزمن آخر تعديل
+_logo_cache = {}
+
+# حدود اعتبار البكسل جزءًا من الخلفية البيضاء
+BG_MIN_BRIGHTNESS = 232   # أقل قناة لونية تعتبر بعدها البكسل فاتحًا
+BG_MAX_SATURATION = 22    # أقصى فرق بين القنوات ليعتبر البكسل رماديًا/أبيض
+EDGE_SOFT_START = 190     # بداية التدرج لتنعيم حواف الشعار
+
+
+def strip_background(path):
+    """
+    إزالة الخلفية البيضاء من صورة الشعار وإرجاعها بصيغة PNG شفافة.
+
+    تُزال فقط المساحات الفاتحة المتصلة بحواف الصورة (تعبئة انتشارية)، حتى لا
+    تُفقد المساحات البيضاء داخل الشعار نفسه. حواف الرسم تُنعَّم بشفافية متدرجة.
+    تُرجع None إذا تعذّرت المعالجة، ليُقدَّم الملف الأصلي كما هو.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+
+    try:
+        img = Image.open(path).convert("RGBA")
+    except Exception:
+        return None
+
+    w, h = img.size
+    if w * h > 4_000_000:  # صورة كبيرة جدًا للمعالجة البكسلية
+        return None
+
+    px = img.load()
+
+    def is_light(x, y):
+        r, g, b, a = px[x, y]
+        if a == 0:
+            return True
+        return min(r, g, b) >= BG_MIN_BRIGHTNESS and max(r, g, b) - min(r, g, b) <= BG_MAX_SATURATION
+
+    # تعبئة انتشارية من حواف الصورة لتحديد بكسلات الخلفية
+    background = bytearray(w * h)
+    queue = deque()
+    for x in range(w):
+        for y in (0, h - 1):
+            if not background[y * w + x] and is_light(x, y):
+                background[y * w + x] = 1
+                queue.append((x, y))
+    for y in range(h):
+        for x in (0, w - 1):
+            if not background[y * w + x] and is_light(x, y):
+                background[y * w + x] = 1
+                queue.append((x, y))
+
+    while queue:
+        x, y = queue.popleft()
+        for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+            if 0 <= nx < w and 0 <= ny < h and not background[ny * w + nx] and is_light(nx, ny):
+                background[ny * w + nx] = 1
+                queue.append((nx, ny))
+
+    span = BG_MIN_BRIGHTNESS - EDGE_SOFT_START
+    for y in range(h):
+        row = y * w
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            if background[row + x]:
+                px[x, y] = (r, g, b, 0)
+            else:
+                low = min(r, g, b)
+                if low > EDGE_SOFT_START and max(r, g, b) - low <= BG_MAX_SATURATION:
+                    # حافة فاتحة ملاصقة للرسم: شفافية متدرجة بدل قطع حاد
+                    alpha = int(a * max(0.0, (BG_MIN_BRIGHTNESS - low) / span))
+                    px[x, y] = (r, g, b, alpha)
+
+    buf = io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
 @app.route("/logo")
 def logo():
-    """إرجاع ملف الشعار إن وُجد؛ وإلا 404 ليعرض القالب النص البديل."""
+    """
+    إرجاع ملف الشعار بخلفية شفافة.
+    المعامل raw=1 يُرجع الملف الأصلي دون معالجة.
+    تُرجع 404 عند غياب الملف ليعرض القالب النص البديل.
+    """
     path = find_logo()
     if not path:
         return "", 404
-    return send_file(path)
+    if request.args.get("raw") or path.lower().endswith(".svg"):
+        return send_file(path)
+
+    key = (path, os.path.getmtime(path))
+    if key not in _logo_cache:
+        _logo_cache.clear()
+        _logo_cache[key] = strip_background(path)
+    data = _logo_cache[key]
+    if data is None:
+        return send_file(path)
+    return send_file(io.BytesIO(data), mimetype="image/png", download_name="logo.png")
 
 
 @app.route("/analyze", methods=["POST"])
