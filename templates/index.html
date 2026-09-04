@@ -177,7 +177,7 @@
 <header class="app">
   <div class="wrap rhead">
     <div class="org">نظام تحليل نتائج الاختبارات<span>تحليل، ترتيب، رسوم بيانية، تقارير PDF، وشهادات تفوق</span></div>
-    <div class="logo"><img src="/static/logo.png" alt="" onerror="this.remove()">
+    <div class="logo"><img src="static/logo.png" alt="" onerror="this.remove()">
     <div class="exam">نموذج تحليل النتائج</div>
   </div>
 </header>
@@ -372,7 +372,7 @@ function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display=
 function reportHead(m){
   return `<div class="rhead">
     <div class="org">${esc(m.admin)}<br>${esc(m.school || '')}</div>
-    <div class="logo"><img src="/static/logo.png" alt="" onerror="this.remove()">
+    <div class="logo"><img src="static/logo.png" alt="" onerror="this.remove()">
     <div class="exam">${esc(m.exam || 'تحليل النتائج')}</div>
   </div>
   <div class="band"><span>تحليل نتائج اختبار مادة [${esc(m.subject)}]</span></div>`;
@@ -565,7 +565,7 @@ function certHTML(s, m){
     ${certDecor()}
     <div class="inner">
       <div class="org">
-        <img src="/static/logo.png" alt="وزارة التعليم" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'orgfallback',textContent:'وزارة التعليم'}))">
+        <img src="static/logo.png" alt="وزارة التعليم" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'orgfallback',textContent:'وزارة التعليم'}))">
         ${esc(m.admin)}<br>${esc(m.school || '')}
       </div>
       <div class="title">${titleFlourish('l')}شكر وتقدير${titleFlourish('r')}</div>
