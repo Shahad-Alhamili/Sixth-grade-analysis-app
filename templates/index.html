@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+<style id="pageOrient">@page{size:A4 portrait;margin:0}</style>
 <style>
   :root{
     --teal:#1E9E8A; --teal-deep:#0F6E62; --teal-soft:#E4F4F1; --gold:#C9A227; --gold-soft:#FBF4DC;
@@ -142,13 +142,22 @@
   .cert .sigs small{display:block;color:var(--muted);font-weight:500}
   .cert .date{position:absolute;bottom:14mm;left:0;right:0;text-align:center;color:var(--muted);font-size:.88rem}
 
-  #exportRoot{position:absolute;left:-10000px;top:0}
+  #printArea{display:none}
   @media print{
-    header.app,.topstrip,.panel:not(.printable),.no-print,footer{display:none!important}
-    body{background:#fff}
-    .page,.cert{box-shadow:none;margin:0}
+    html,body{background:#fff;margin:0;padding:0}
+    body *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body.printing > *{display:none!important}
+    body.printing > #printArea{display:block!important}
+    body:not(.printing) header.app,body:not(.printing) .topstrip,
+    body:not(.printing) .panel:not(.printable),body:not(.printing) .no-print,
+    body:not(.printing) footer{display:none!important}
     .sheet-scroll{overflow:visible;padding:0}
-    @page{margin:0}
+    .page{width:210mm;height:297mm;min-height:0;margin:0;border:0;box-shadow:none;overflow:hidden}
+    .cert{width:297mm;height:210mm;margin:0;box-shadow:none;overflow:hidden}
+    .page:last-child,.cert:last-child{page-break-after:auto;break-after:auto}
+    tr,.chartbox,.donut,.kv,.card{break-inside:avoid;page-break-inside:avoid}
+    #analytics{width:210mm;padding:12mm;margin:0}
+    .cbox{height:auto}
   }
 </style>
 </head>
@@ -168,16 +177,15 @@
   <!-- ===================== الإعداد ===================== -->
   <section class="panel" id="setup">
     <h2><span>١. بيانات التقرير</span></h2>
-    <p class="lead">تظهر هذه البيانات في رأس التقرير وتذييله وفي الشهادات.</p>
+    <p class="lead">تظهر هذه البيانات في رأس التقرير وتذييله وفي الشهادات. اسم المدرسة والمديرة مُعبّآن مسبقًا ويمكن تعديلهما. باقي الحقول اختيارية؛ ما يُترك فارغًا لا يظهر أو يظهر بنقاط للتعبئة اليدوية. الإدارة التعليمية ثابتة: الإدارة العامة للتعليم بمنطقة الرياض.</p>
     <div class="grid">
-      <div><label>الإدارة العامة للتعليم</label><input type="text" id="m_admin" placeholder="مثال: الإدارة العامة للتعليم بمنطقة الرياض"></div>
-      <div><label>اسم المدرسة</label><input type="text" id="m_school" placeholder="مثال: الابتدائية الخامسة"></div>
+      <div><label>اسم المدرسة</label><input type="text" id="m_school" value="الابتدائية 327"></div>
       <div><label>المادة</label><input type="text" id="m_subject" placeholder="مثال: الرياضيات"></div>
       <div><label>نوع الاختبار</label><input type="text" id="m_exam" placeholder="مثال: الاختبار التشخيصي قبلي"></div>
       <div><label>المرحلة الدراسية / الصف</label><input type="text" id="m_grade" placeholder="مثال: سادس"></div>
       <div><label>السنة / الفصل الدراسي</label><input type="text" id="m_term" placeholder="مثال: الفصل الأول / ١٤٤٨هـ"></div>
       <div><label>اسم المعلمة</label><input type="text" id="m_teacher" placeholder="يظهر في تذييل الصفحة"></div>
-      <div><label>اسم مديرة المدرسة</label><input type="text" id="m_principal" placeholder="يظهر في تذييل الصفحة"></div>
+      <div><label>اسم مديرة المدرسة</label><input type="text" id="m_principal" value="جميلة العتيبي"></div>
       <div><label>الطلاب / الطالبات</label>
         <select id="m_gender"><option value="f">طالبات</option><option value="m">طلاب</option></select></div>
       <div><label>تاريخ الشهادات</label><input type="text" id="m_date" placeholder="مثال: ١٤٤٨/٢/١٥هـ"></div>
@@ -218,19 +226,19 @@
 
     <!-- ===================== التصدير ===================== -->
     <section class="panel no-print">
-      <h2><span>التصدير</span></h2>
-      <p class="lead">اختيار ما يُضمَّن في ملف PDF. النطاق المعروض في التقرير (فصل معين أو الصف كامل) هو ما يتم تصديره.</p>
+      <h2><span>الطباعة والتصدير</span></h2>
+      <p class="lead">اختيار الأقسام المطلوبة ثم الطباعة. النطاق المطبوع هو المعروض في التقرير (فصل معين أو الصف كامل)، ومن نافذة الطباعة يمكن اختيار "حفظ بصيغة PDF" بدل الطابعة.</p>
       <div class="actions" style="margin-top:0">
         <label class="check"><input type="checkbox" id="x_report" checked> التقرير الإحصائي</label>
         <label class="check"><input type="checkbox" id="x_list" checked> قائمة الطلاب</label>
         <label class="check"><input type="checkbox" id="x_analytics"> التحاليل الإضافية</label>
       </div>
       <div class="actions">
-        <button class="btn-primary" id="pdf">تحميل PDF</button>
-        <button class="btn-ghost" onclick="window.print()">طباعة</button>
+        <button class="btn-primary" id="printReport">طباعة التقرير</button>
         <button class="btn-ghost" id="excel">تصدير Excel</button>
         <span class="note" id="pdfStatus"></span>
       </div>
+      <p class="note" style="text-align:center">في نافذة الطباعة: الحجم A4، الهوامش «بلا / None»، وتفعيل «طباعة الخلفيات / Background graphics» لتظهر الألوان.</p>
     </section>
 
     <!-- ===================== التقرير ===================== -->
@@ -272,7 +280,7 @@
       <h2><span>شهادات التفوق</span></h2>
       <p class="lead" id="certLead"></p>
       <div class="actions" style="margin-top:0">
-        <button class="btn-gold" id="certPdf">تحميل الشهادات PDF</button>
+        <button class="btn-gold" id="certPrint">طباعة الشهادات</button>
         <button class="btn-ghost" id="certToggle">معاينة الشهادات</button>
         <span class="note" id="certStatus"></span>
       </div>
@@ -284,10 +292,11 @@
 
 <footer class="wrap note" style="text-align:center;padding-bottom:30px;border-top:3px double var(--line);padding-top:14px">الترتيب متسلسل حسب النسبة المئوية، وعند التساوي حسب الاسم أبجديًا. الشهادات تُنشأ لجميع الحاصلين على تقدير ممتاز.</footer>
 
-<div id="exportRoot"></div>
+<div id="printArea"></div>
 
 <script>
 const LEVEL_COLORS = ['#4CBF8E','#2AA79B','#3D9BE9','#F39A3C','#F26D6D'];
+const ADMIN = 'الإدارة العامة للتعليم بمنطقة الرياض';
 const ROWS_PER_PAGE = 22;
 let DATA = null, scope = null;   // scope: اسم الفصل أو '__grade'
 const charts = {};
@@ -299,7 +308,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 function meta(){
   const g = $('m_gender').value === 'f';
   return {
-    admin: $('m_admin').value.trim(), school: $('m_school').value.trim(),
+    admin: ADMIN, school: $('m_school').value.trim(),
     subject: $('m_subject').value.trim() || '—', exam: $('m_exam').value.trim(),
     grade: $('m_grade').value.trim(), term: $('m_term').value.trim() || '—',
     teacher: $('m_teacher').value.trim(), principal: $('m_principal').value.trim(),
@@ -336,13 +345,13 @@ $('run').onclick = async () => {
 function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display='block'; }
 
 /* إعادة رسم التقرير عند تعديل البيانات اليدوية */
-['m_admin','m_school','m_subject','m_exam','m_grade','m_term','m_teacher','m_principal','m_gender','m_date']
+['m_school','m_subject','m_exam','m_grade','m_term','m_teacher','m_principal','m_gender','m_date']
   .forEach(id => $(id).addEventListener('input', () => { if (DATA) { renderReport(); renderCerts(); } }));
 
 /* ---------------- أجزاء التقرير ---------------- */
 function reportHead(m){
   return `<div class="rhead">
-    <div class="org">${esc(m.admin || 'الإدارة العامة للتعليم')}<br>${esc(m.school || '')}</div>
+    <div class="org">${esc(m.admin)}<br>${esc(m.school || '')}</div>
     <div class="logo"><img src="/static/logo.png" alt="" onerror="this.remove()"><div class="wm">وزارة التعليم<small>Ministry of Education</small></div></div>
     <div class="exam">${esc(m.exam || 'تحليل النتائج')}</div>
   </div>
@@ -523,46 +532,49 @@ function renderAll(){
   $('results').scrollIntoView({behavior:'smooth'});
 }
 
-/* ---------------- التصدير ---------------- */
+/* ---------------- الطباعة والتصدير ---------------- */
 function canvasesToImages(node){
   node.querySelectorAll('canvas').forEach(cv => {
     const src = $(cv.id); if (!src) return;
-    const img = document.createElement('img'); img.src = src.toDataURL('image/png'); img.style.width = '100%';
+    const img = document.createElement('img');
+    img.src = src.toDataURL('image/png'); img.style.width = '100%';
     cv.replaceWith(img);
   });
 }
-async function savePdf(node, filename, orientation, status){
-  status.textContent = 'جارٍ إنشاء الملف…';
-  $('exportRoot').appendChild(node);
-  try {
-    await html2pdf().set({
-      margin: 0, filename,
-      image: {type:'jpeg', quality:0.96},
-      html2canvas: {scale:2, useCORS:true, letterRendering:true},
-      jsPDF: {unit:'mm', format:'a4', orientation},
-      pagebreak: {mode:['css','legacy']},
-    }).from(node).save();
-    status.textContent = 'تم التحميل.';
-  } catch (e) { status.textContent = 'تعذّر إنشاء الملف.'; console.error(e); }
-  finally { node.remove(); setTimeout(() => status.textContent = '', 3000); }
+function printNode(node, landscape, status){
+  const area = $('printArea');
+  area.innerHTML = ''; area.appendChild(node);
+  $('pageOrient').textContent = `@page{size:A4 ${landscape ? 'landscape' : 'portrait'};margin:0}`;
+  document.body.classList.add('printing');
+  const cleanup = () => {
+    document.body.classList.remove('printing');
+    area.innerHTML = '';
+    $('pageOrient').textContent = '@page{size:A4 portrait;margin:0}';
+    window.removeEventListener('afterprint', cleanup);
+    if (status) status.textContent = '';
+  };
+  window.addEventListener('afterprint', cleanup);
+  setTimeout(() => { window.print(); setTimeout(cleanup, 1000); }, 80);
 }
-$('pdf').onclick = async () => {
+$('printReport').onclick = () => {
   const m = meta(), node = document.createElement('div');
   if ($('x_report').checked) node.insertAdjacentHTML('beforeend', statsPage(m));
   if ($('x_list').checked) node.insertAdjacentHTML('beforeend', listPages(m, filteredRows()));
   if ($('x_analytics').checked) {
-    const a = $('analytics').cloneNode(true); canvasesToImages(a);
-    a.style.cssText = 'width:210mm;padding:12mm;background:#fff;page-break-before:always';
+    const a = $('analytics').cloneNode(true);
+    canvasesToImages(a);
+    a.querySelectorAll('.no-print').forEach(el => el.remove());
+    a.style.cssText = 'background:#fff;page-break-before:always;break-before:page';
     node.appendChild(a);
   }
   if (!node.children.length) return $('pdfStatus').textContent = 'اختر قسمًا واحدًا على الأقل.';
-  const name = scope === '__grade' ? 'الصف_كامل' : scope;
-  await savePdf(node, `تحليل_${m.subject}_${name}.pdf`, 'portrait', $('pdfStatus'));
+  printNode(node, false, $('pdfStatus'));
 };
-$('certPdf').onclick = async () => {
-  if (!excellentStudents().length) return $('certStatus').textContent = 'لا توجد شهادات لإنشائها.';
-  const node = document.createElement('div'); node.innerHTML = $('certs').innerHTML;
-  await savePdf(node, `شهادات_التفوق_${meta().subject}.pdf`, 'landscape', $('certStatus'));
+$('certPrint').onclick = () => {
+  if (!excellentStudents().length) return $('certStatus').textContent = 'لا توجد شهادات لطباعتها.';
+  const node = document.createElement('div');
+  node.innerHTML = $('certs').innerHTML;
+  printNode(node, true, $('certStatus'));
 };
 $('excel').onclick = async () => {
   const res = await fetch('/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(DATA)});
