@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>تحليل نتائج الاختبارات</title>
+<title>تحليل نتائج الاختبارات — وزارة التعليم</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri:wght@400;700&family=El+Messiri:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<style id="pageOrient">@page{size:A4 portrait;margin:0 0 8mm 0}</style>
+<style id="pageOrient">@page{size:A4 portrait;margin:8mm 8mm 10mm}</style>
 <style>
   :root{
     --teal:#1E9E8A; --teal-deep:#0F6E62; --teal-soft:#E4F4F1; --gold:#C9A227; --gold-soft:#FBF4DC;
@@ -172,15 +172,16 @@
     body:not(.printing) .panel:not(.printable),body:not(.printing) .no-print,
     body:not(.printing) footer{display:none!important}
     .sheet-scroll{overflow:visible;padding:0}
-    .page{width:210mm;height:289mm;min-height:0;margin:0;border:0;box-shadow:none;overflow:hidden;
-          padding:12mm 12mm 6mm}
-    .cert{width:297mm;height:204mm;margin:0;box-shadow:none;overflow:hidden}
+    .page{width:194mm;height:279mm;min-height:0;margin:0;border:0;box-shadow:none;overflow:hidden;
+          padding:6mm 6mm 3mm}
+    .cert{width:285mm;height:196mm;margin:0;padding:4mm;box-shadow:none;overflow:hidden}
     .page:last-child,.cert:last-child{page-break-after:auto;break-after:auto}
     tr,.chartbox,.donut,.kv,.card{break-inside:avoid;page-break-inside:avoid}
     .break-page{break-before:page;page-break-before:always}
     #analytics .cols:not(.break-page){break-inside:avoid;page-break-inside:avoid}
     #analytics h2,#analytics h3{break-after:avoid;page-break-after:avoid}
-    #analytics{width:210mm;padding:12mm;margin:0}
+    #analytics{width:auto;padding:0;margin:0}
+    #analytics table th{position:static}
     .cbox{height:auto}
   }
 </style>
@@ -191,7 +192,7 @@
 <header class="app">
   <div class="wrap rhead">
     <div class="org">نظام تحليل نتائج الاختبارات<span>تحليل، ترتيب، رسوم بيانية، تقارير PDF، وشهادات تفوق</span></div>
-    <div class="logo"><img src="/logo" alt="" onerror="this.remove()"></div>
+    <div class="logo"><img src="/logo" alt="" onerror="this.remove()"><div class="wm">وزارة التعليم<small>Ministry of Education</small></div></div>
     <div class="exam">نموذج تحليل النتائج</div>
   </div>
 </header>
@@ -387,7 +388,7 @@ function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display=
 function reportHead(m){
   return `<div class="rhead">
     <div class="org">${esc(m.admin)}<br>${esc(m.school || '')}</div>
-    <div class="logo"><img src="/logo" alt="" onerror="this.remove()"></div>
+    <div class="logo"><img src="/logo" alt="" onerror="this.remove()"><div class="wm">وزارة التعليم<small>Ministry of Education</small></div></div>
     <div class="exam">${esc(m.exam || 'تحليل النتائج')}</div>
   </div>
   <div class="band"><span>تحليل نتائج اختبار مادة [${esc(m.subject)}]</span></div>`;
@@ -732,13 +733,13 @@ function printNode(node, landscape, status){
   const area = $('printArea');
   area.innerHTML = ''; area.appendChild(node);
   $('pageOrient').textContent = landscape
-    ? '@page{size:A4 landscape;margin:0 0 6mm 0}'
-    : '@page{size:A4 portrait;margin:0 0 8mm 0}';
+    ? '@page{size:A4 landscape;margin:6mm 6mm 8mm}'
+    : '@page{size:A4 portrait;margin:8mm 8mm 10mm}';
   document.body.classList.add('printing');
   const cleanup = () => {
     document.body.classList.remove('printing');
     area.innerHTML = '';
-    $('pageOrient').textContent = '@page{size:A4 portrait;margin:0 0 8mm 0}';
+    $('pageOrient').textContent = '@page{size:A4 portrait;margin:8mm 8mm 10mm}';
     window.removeEventListener('afterprint', cleanup);
     if (status) status.textContent = '';
   };
