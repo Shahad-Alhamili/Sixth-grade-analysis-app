@@ -160,8 +160,7 @@
   .cert[data-theme="national"] .rule,.cert[data-theme="national"] .enddiv{display:none}
   .certbg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
   .cert[data-theme="national"] .inner{inset:0;padding:0;display:block}
-  .cert[data-theme="national"] .natline{position:absolute;top:3.2%;left:36%;right:19.5%;margin:0}
-  .cert[data-theme="national"] .title{position:absolute;top:7%;left:36%;right:19.5%;margin:0;font-size:3.3rem}
+  .cert[data-theme="national"] .title{position:absolute;top:14.5%;left:0;right:0;margin:0;font-size:3.2rem}
   .cert[data-theme="national"] .slogan{position:absolute;top:25.5%;left:24%;right:24%;margin:0;font-size:2.3rem}
   .cert[data-theme="national"] .mid{position:absolute;top:36%;left:23.5%;right:23.5%;bottom:23%}
   .cert[data-theme="national"] .body{font-size:1.2rem;max-width:none}
@@ -701,7 +700,7 @@ function certHTML(s, m){
         <img class="mark-flag" src="/flag" alt="" onerror="this.remove()">
       </div>` : ''}
       <div class="title">${titleFlourish('l')}شكر وتقدير${titleFlourish('r')}</div>
-      ${national ? '<div class="natline">اليوم الوطني السعودي</div><div class="slogan">هٰكَذا نَبْني الوَطَن</div>' : ''}
+      ${national ? '<div class="slogan">هٰكَذا نَبْني الوَطَن</div>' : ''}
       ${certRule()}
       <div class="mid">
       <div class="body">
