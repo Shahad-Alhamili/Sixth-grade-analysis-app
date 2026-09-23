@@ -48,7 +48,10 @@
   label{display:block;font-size:.86rem;color:var(--muted);margin-bottom:5px}
   .grid label:not(.plain-label){position:absolute;top:-9px;right:12px;z-index:1;margin:0;background:var(--sheet);padding:0 7px;font-size:.75rem;font-weight:600;color:var(--teal-deep)}
   .plain-label{text-align:center;margin-bottom:8px}
-  input[type=number],input[type=text],select{width:100%;padding:12px;border:1.5px solid var(--teal);border-radius:10px;font:inherit;background:#fff;color:var(--ink);font-weight:600;text-align:center}
+  input[type=number],input[type=text],select{width:100%;padding:12px;border:1.5px solid var(--teal);
+    border-radius:10px;font:inherit;font-size:1.06rem;background:#fff;color:var(--ink);
+    font-weight:600;text-align:center}
+  input[type=number]{font-size:1.16rem;letter-spacing:.02em}
   input::placeholder{font-weight:400;color:#A9B7B1}
   .search input[type=search],.search select{font-weight:500}
   input:focus,select:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
@@ -248,7 +251,10 @@
       <div><label>تاريخ الشهادات</label><input type="text" id="m_date" placeholder="مثال: ١٤٤٨/٢/١٥هـ"></div>
     </div>
 
-    <h2 style="margin-top:22px">٢. ملف الدرجات</h2>
+  </section>
+
+  <section class="panel" id="upload">
+    <h2><span>٢. ملف الدرجات</span></h2>
     <p class="lead">إما شيت لكل فصل (اسم الشيت = اسم الفصل) بعمودي <b>اسم الطالب</b> و<b>الدرجة</b>، أو شيت واحد بعمود <b>الفصل</b> إضافي.</p>
     <div class="grid">
       <div style="grid-column:1/-1">
@@ -580,37 +586,16 @@ function certDecor(national){
   </g>`;
 
   // غصن غار: ساق منحنية بأوراق مدببة متقابلة
-  const laurel = (x,y,sc,rot,f) => {
-    const petal = (px,py,a,k) =>
-      `<path d="M0 0Q13-5.5 26 0Q13 5.5 0 0Z" fill="${f}" transform="translate(${px} ${py}) rotate(${a}) scale(${k})"/>`;
-    const stops = [.16, .40, .64, .88];
-    const leaves = stops.map((t,i) => {
-      const px = t*46, py = -t*66, k = 1.45 - t*0.45;
-      return petal(px + 2, py - 2, -58 + i*7, k) + petal(px - 4, py + 5, 128 + i*7, k * .9);
-    }).join('');
-    return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${sc})" opacity=".85">
-      <path d="M0 0C7-25 22-48 48-66" fill="none" stroke="${f}" stroke-width="3.2" stroke-linecap="round"/>
-      ${leaves}</g>`;
-  };
-
-  const symbols = `<g fill="var(--c2)" opacity=".55" font-size="34" font-weight="700" font-family="serif">
-    <text x="150" y="330">+</text><text x="120" y="405">÷</text><text x="165" y="470">×</text></g>`;
-
   // تُوزَّع الزخارف على الأطراف فقط؛ المنطقة الوسطى (x: 250-1140, y: 250-720) محجوزة للنص
   const sprinkles = [
-    star(300,132,11,'var(--c3)'), star(392,84,9,'var(--c2)',.8), star(196,232,8,'var(--c3)',.8),
-    star(1336,392,10,'var(--c3)',.9), star(1332,470,9,'var(--c2)',.7), star(148,830,9,'var(--c3)',.6),
-    star(1076,790,9,'var(--c2)',.6), star(1330,690,8,'var(--c3)',.7),
-    heart(1338,330,12,'var(--c2)',.75), heart(238,318,10,'var(--c2)',.7),
-    heart(120,890,12,'var(--pink)',.6), heart(232,760,10,'var(--c2)',.5),
-    dot(258,178,5,'var(--c2)'), dot(1150,700,5,'var(--c3)'), dot(152,470,5,'var(--pink)',.6),
-    dot(1340,590,5,'var(--c2)',.6), dot(1032,900,4,'var(--c3)',.7),
-    laurel(1104,832,1.15,-26,'var(--c2)'), laurel(1326,830,1.1,26,'var(--c2)'),
-    laurel(486,922,.7,-116,'var(--c3)'),
+    star(300,132,11,'var(--c3)'), star(196,232,8,'var(--c3)',.8),
+    star(1336,392,10,'var(--c3)',.85), star(148,830,9,'var(--c3)',.6),
+    heart(1338,330,11,'var(--c2)',.65), heart(232,760,10,'var(--c2)',.5),
+    dot(1150,700,5,'var(--c3)'), dot(152,470,5,'var(--pink)',.55),
   ].join('');
 
   return `<svg class="deco" viewBox="0 0 1400 990" preserveAspectRatio="none">
-    ${bunting}${calculator}${trophy}${books(1120,858,['النجاح','التميز','الرياضيات'],.82)}${notebook}${symbols}${sprinkles}
+    ${bunting}${calculator}${trophy}${books(1120,858,['النجاح','التميز','الرياضيات'],.82)}${notebook}${sprinkles}
   </svg>`;
 }
 function nationalDecor(){
@@ -642,9 +627,8 @@ function nationalDecor(){
 
   return `<svg class="deco" viewBox="0 0 1400 990" preserveAspectRatio="none">
     ${skyline}
-    ${frond(52,352,1,-34,'var(--c1)',.9)}${frond(46,476,.8,8,'var(--c2)',.7)}
-    ${frond(1352,392,-1,34,'var(--c1)',.82)}${frond(1356,566,-.8,-8,'var(--c2)',.62)}
-    ${frond(52,742,1,40,'var(--c1)',.85)}${frond(1348,742,-1,-40,'var(--c1)',.85)}
+    ${frond(50,392,1,-30,'var(--c1)',.85)}${frond(1352,392,-1,30,'var(--c1)',.8)}
+    ${frond(50,754,1,38,'var(--c1)',.8)}${frond(1352,754,-1,-38,'var(--c1)',.8)}
   </svg>`;
 }
 function certCorners(){
