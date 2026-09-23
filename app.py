@@ -194,7 +194,11 @@ def style_sheet(ws, headers, rows):
 LOGO_DIRS = ("static", ".")
 LOGO_EXTENSIONS = (".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif")
 # أسماء الملفات المقبولة لكل نوع صورة
-IMAGE_STEMS = {"logo": ("logo",), "emblem": ("emblem", "vision", "شعار")}
+IMAGE_STEMS = {
+    "logo": ("logo",),                              # شعار وزارة التعليم
+    "emblem": ("emblem", "شعار", "نخلة"),            # شعار المملكة: النخلة والسيفان
+    "flag": ("flag", "علم", "saudi-flag", "saudiflag"),  # علم المملكة
+}
 
 
 def find_image(kind):
@@ -302,15 +306,17 @@ def strip_background(path):
 
 @app.route("/logo")
 @app.route("/emblem")
+@app.route("/flag")
 def logo():
     """
-    إرجاع صورة الشعار (/logo) أو الرمز الإضافي (/emblem) بخلفية شفافة.
-    الرمز الإضافي يظهر أعلى شهادات ثيم اليوم الوطني، ويُقرأ من ملف باسم
-    emblem أو vision أو شعار.
+    إرجاع صورة بخلفية شفافة حسب المسار:
+      /logo   شعار وزارة التعليم، يظهر في ترويسة التقرير والشهادات
+      /emblem شعار المملكة (النخلة والسيفان)، يظهر في شهادات ثيم اليوم الوطني
+      /flag   علم المملكة، يظهر بجوار الشعار في ثيم اليوم الوطني
     المعامل raw=1 يُرجع الملف الأصلي دون معالجة.
     تُرجع 404 عند غياب الملف، فيُخفي القالب العنصر أو يعرض نصًا بديلًا.
     """
-    path = find_image("emblem" if request.path == "/emblem" else "logo")
+    path = find_image(request.path.lstrip("/"))
     if not path:
         return "", 404
     if request.args.get("raw") or path.lower().endswith(".svg"):
