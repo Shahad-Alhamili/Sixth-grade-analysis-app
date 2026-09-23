@@ -151,10 +151,24 @@
   .cert[data-theme="teal"]{--c1:#0F6E62;--c2:#4FBFAE;--c3:#C9A227;--pink:#C2185B;--soft:#E1F3EF;--cream:var(--sheet)}
   .cert[data-theme="national"]{--c1:#0B5A32;--c2:#1C7A4A;--c3:#BE9A44;--pink:#8A6A24;
                               --soft:#E8F1EA;--cream:#FFFDF8}
-  .cert[data-theme="national"] .band-out{background:linear-gradient(140deg,#A8842F,#E6CE86 26%,var(--c3) 52%,#E6CE86 74%,#A8842F)}
-  .cert[data-theme="national"] .band-fill{inset:6.5mm;border-radius:6mm}
-  .cert[data-theme="national"] .band-in{inset:5.4mm;border:1mm solid var(--c1);border-radius:7mm}
-  .cert[data-theme="national"] .band-dash{inset:9mm;border:.45mm solid var(--c3);border-radius:4.5mm;opacity:.85}
+  /* الثيم الوطني يعتمد خلفية جاهزة، فتُخفى كل الزخارف المرسومة وتُوزَّع النصوص على مناطقها */
+  .cert[data-theme="national"]{padding:0}
+  .cert[data-theme="national"] .band-out,.cert[data-theme="national"] .band-fill,
+  .cert[data-theme="national"] .band-in,.cert[data-theme="national"] .band-dash,
+  .cert[data-theme="national"] .corners,.cert[data-theme="national"] .deco,
+  .cert[data-theme="national"] .org,.cert[data-theme="national"] .natmarks,
+  .cert[data-theme="national"] .rule,.cert[data-theme="national"] .enddiv{display:none}
+  .certbg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
+  .cert[data-theme="national"] .inner{inset:0;padding:0;display:block}
+  .cert[data-theme="national"] .natline{position:absolute;top:3.2%;left:36%;right:19.5%;margin:0}
+  .cert[data-theme="national"] .title{position:absolute;top:7%;left:36%;right:19.5%;margin:0;font-size:3.3rem}
+  .cert[data-theme="national"] .slogan{position:absolute;top:25.5%;left:24%;right:24%;margin:0;font-size:2.3rem}
+  .cert[data-theme="national"] .mid{position:absolute;top:36%;left:23.5%;right:23.5%;bottom:23%}
+  .cert[data-theme="national"] .body{font-size:1.2rem;max-width:none}
+  .cert[data-theme="national"] .body p{margin-bottom:4.5mm}
+  .cert[data-theme="national"] .body p.nameline{margin-bottom:5.5mm}
+  .cert[data-theme="national"] .teacher{margin-top:6mm!important}
+  .cert[data-theme="national"] .sig{position:absolute;left:9%;right:13%;bottom:5.5%;margin:0}
   .cert .natline{color:var(--c3);font-weight:700;font-size:.92rem;letter-spacing:.34em;
                  margin:4mm 0 0;display:flex;align-items:center;justify-content:center;gap:5mm}
   .cert .natline::before,.cert .natline::after{content:"";width:22mm;height:1px;background:var(--c3);opacity:.7}
@@ -671,6 +685,7 @@ function certHTML(s, m){
   const pctPhrase = showPct ? ` <span class="pct">بنسبة ${fmt(s.pct)}٪</span>` : '';
   const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
   return `<div class="cert" data-theme="${theme}">
+    ${national ? '<img class="certbg" src="/static/cert-national.jpg" alt="">' : ''}
     <div class="band-out"></div><div class="band-fill"></div>
     <div class="band-in"></div><div class="band-dash"></div>
     ${certCorners()}
