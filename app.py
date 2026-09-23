@@ -193,10 +193,13 @@ def style_sheet(ws, headers, rows):
 # ---------------------------------------------------------------------------
 LOGO_DIRS = ("static", ".")
 LOGO_EXTENSIONS = (".png", ".jpg", ".jpeg", ".svg", ".webp", ".gif")
+# أسماء الملفات المقبولة لكل نوع صورة
+IMAGE_STEMS = {"logo": ("logo",), "emblem": ("emblem", "vision", "شعار")}
 
 
-def find_logo():
-    """البحث عن ملف شعار باسم logo بأي امتداد أو حالة أحرف، في مجلد static أو مجلد المشروع."""
+def find_image(kind):
+    """البحث عن ملف صورة بالأسماء المقبولة للنوع المطلوب، في مجلد static أو مجلد المشروع."""
+    stems = IMAGE_STEMS[kind]
     base = os.path.dirname(os.path.abspath(__file__))
     for folder in LOGO_DIRS:
         path = os.path.join(base, folder)
@@ -204,9 +207,13 @@ def find_logo():
             continue
         for entry in sorted(os.listdir(path)):
             stem, ext = os.path.splitext(entry)
-            if stem.lower() == "logo" and ext.lower() in LOGO_EXTENSIONS:
+            if stem.lower() in stems and ext.lower() in LOGO_EXTENSIONS:
                 return os.path.join(path, entry)
     return None
+
+
+def find_logo():
+    return find_image("logo")
 
 
 @app.route("/")
@@ -294,13 +301,16 @@ def strip_background(path):
 
 
 @app.route("/logo")
+@app.route("/emblem")
 def logo():
     """
-    إرجاع ملف الشعار بخلفية شفافة.
+    إرجاع صورة الشعار (/logo) أو الرمز الإضافي (/emblem) بخلفية شفافة.
+    الرمز الإضافي يظهر أعلى شهادات ثيم اليوم الوطني، ويُقرأ من ملف باسم
+    emblem أو vision أو شعار.
     المعامل raw=1 يُرجع الملف الأصلي دون معالجة.
-    تُرجع 404 عند غياب الملف ليعرض القالب النص البديل.
+    تُرجع 404 عند غياب الملف، فيُخفي القالب العنصر أو يعرض نصًا بديلًا.
     """
-    path = find_logo()
+    path = find_image("emblem" if request.path == "/emblem" else "logo")
     if not path:
         return "", 404
     if request.args.get("raw") or path.lower().endswith(".svg"):
