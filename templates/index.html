@@ -159,6 +159,18 @@
   .cert[data-theme="national"] .org,.cert[data-theme="national"] .natmarks,
   .cert[data-theme="national"] .rule,.cert[data-theme="national"] .enddiv{display:none}
   .certbg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
+  /* ثيم نافس: قالب جاهز يحمل كل النص الثابت، وتُعبَّأ فوقه أربعة حقول فقط */
+  .cert[data-theme="nafs"]{padding:0;--c1:#453A8F;--c2:#7D77B0;--cream:#FFFFFF}
+  .cert[data-theme="nafs"] .band-out,.cert[data-theme="nafs"] .band-fill,
+  .cert[data-theme="nafs"] .band-in,.cert[data-theme="nafs"] .band-dash,
+  .cert[data-theme="nafs"] .corners,.cert[data-theme="nafs"] .deco{display:none}
+  .cert[data-theme="nafs"] .inner{position:absolute;inset:0;padding:0;display:block}
+  .nafs-f{position:absolute;color:#453A8F;white-space:nowrap;line-height:1;font-weight:700;
+          font-family:"Saudi","El Messiri","IBM Plex Sans Arabic",sans-serif}
+  .nafs-name{left:0;right:0;bottom:48.6%;text-align:center;font-size:2.35rem;letter-spacing:.01em}
+  .nafs-name .cls{font-size:1.05rem;font-weight:500;color:#7D77B0;margin-inline-start:.8em;vertical-align:.3em}
+  .nafs-principal{left:9%;width:33.8%;bottom:17.2%;text-align:center;font-size:1.2rem;font-weight:500}
+  .nafs-date{left:58.8%;width:31.6%;bottom:17.2%;text-align:center;font-size:1.2rem;font-weight:500}
   .cert[data-theme="national"] .inner{inset:0;padding:0;display:block}
   .cert[data-theme="national"] .title{position:absolute;top:14.5%;left:0;right:0;margin:0;font-size:3.2rem}
   .cert[data-theme="national"] .slogan{position:absolute;top:25.5%;left:24%;right:24%;margin:0;font-size:2.3rem}
@@ -357,9 +369,16 @@
       <p class="lead" id="certLead"></p>
       <div class="grid" style="margin-bottom:6px">
         <div><label>نطاق الشهادات</label><select id="certScope"></select></div>
+        <div><label>من يحصل على الشهادة</label>
+          <select id="certWho">
+            <option value="top">الحاصلون على ممتاز</option>
+            <option value="pass">كل من اجتاز الاختبار</option>
+          </select>
+        </div>
         <div><label>لون الشهادة</label>
           <select id="certTheme">
             <option value="national">اليوم الوطني (أخضر وذهبي)</option>
+            <option value="nafs">نافس — شهادة إتقان</option>
             <option value="purple">بنفسجي</option>
             <option value="rose">وردي</option>
             <option value="teal">تركوازي</option>
@@ -535,8 +554,12 @@ function renderReport(){
 
 /* ---------------- الشهادات ---------------- */
 function excellentStudents(){
-  const scopeValue = $('certScope').value;
-  return DATA.students.filter(s => s.level === DATA.levels[0] && (!scopeValue || s.class === scopeValue));
+  // المرشحون للشهادة حسب النطاق (الفصل) ومعيار الاستحقاق المختار
+  const scopeValue = $('certScope').value, who = $('certWho').value;
+  const passMark = DATA.thresholds[3];
+  return DATA.students.filter(s =>
+    (!scopeValue || s.class === scopeValue) &&
+    (who === 'pass' ? s.pct >= passMark : s.level === DATA.levels[0]));
 }
 function certDecor(national){
   // زخارف الشهادة: رايات، آلة حاسبة، كأس، كتب، دفتر وأقلام، نجوم ورموز حسابية
@@ -676,9 +699,24 @@ function certRule(){
     <path transform="translate(180 13) scale(1.1)" fill="var(--c1)"
       d="M0 8C-9 1-10-5-6-8-3-10 0-8 0-5 0-8 3-10 6-8 10-5 9 1 0 8Z"/></svg>`;
 }
+function nafsCertHTML(s, m){
+  // قالب نافس يحمل نصه الثابت؛ تُضاف فوقه الحقول المتغيرة فقط
+  const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+  const cls = esc(s.class) ? `<span class="cls">(${esc(s.class)})</span>` : '';
+  const pct = $('certPct').checked ? `<span class="cls">${fmt(s.pct)}٪</span>` : '';
+  return `<div class="cert" data-theme="nafs">
+    <img class="certbg" src="/static/cert-nafs.jpg" alt="">
+    <div class="inner">
+      <div class="nafs-f nafs-name">${esc(s.name)}${cls}${pct}</div>
+      <div class="nafs-f nafs-principal">${esc(m.principal || '')}</div>
+      <div class="nafs-f nafs-date">${esc(arabicDigits(m.date || ''))}</div>
+    </div>
+  </div>`;
+}
 function certHTML(s, m){
   const she = m.female, theme = $('certTheme').value, showPct = $('certPct').checked;
   const national = theme === 'national';
+  if (theme === 'nafs') return nafsCertHTML(s, m);
   const subject = m.subject === '—' ? 'المادة' : m.subject;
   const examPhrase = m.exam ? `${m.exam} لمادة ${subject}` : `اختبار ${subject}`;
   const pctPhrase = showPct ? ` <span class="pct">بنسبة ${fmt(s.pct)}٪</span>` : '';
@@ -725,15 +763,18 @@ function renderCerts(){
   const scopeValue = $('certScope').value;
   const scopeText = scopeValue ? `فصل ${scopeValue}` : 'جميع الفصول';
   const totalExcellent = DATA.students.filter(s => s.level === DATA.levels[0]).length;
-  const noun = m.student === 'الطالبة' ? 'طالبة حاصلة' : 'طالب حاصل';
+  const who = $('certWho').value;
+  const noun = m.student === 'الطالبة' ? 'طالبة' : 'طالب';
+  const basis = who === 'pass' ? 'اجتازوا الاختبار' : 'حاصلون على تقدير ممتاز';
+  const basisNone = who === 'pass' ? 'اجتاز الاختبار' : 'حصل على تقدير ممتاز';
   $('certLead').textContent = list.length
-    ? `${list.length} ${noun} على تقدير ممتاز في ${scopeText}`
-      + (scopeValue ? ` (من ${totalExcellent} على مستوى الصف)` : '')
-      + ` — شهادة لكل ${m.student.replace('ال','')} بصفحة مستقلة (A4 عرضي).`
-    : `لا يوجد حاصلون على تقدير ممتاز في ${scopeText}.`;
+    ? `${list.length} ${noun} ${basis} في ${scopeText}`
+      + (scopeValue && who !== 'pass' ? ` (من ${totalExcellent} على مستوى الصف)` : '')
+      + ` — شهادة لكل ${noun} بصفحة مستقلة (A4 عرضي).`
+    : `لا يوجد من ${basisNone} في ${scopeText}.`;
   $('certs').innerHTML = list.map(s => certHTML(s, m)).join('');
 }
-['certScope','certTheme','certPct'].forEach(id => $(id).addEventListener('input', () => { if (DATA) renderCerts(); }));
+['certScope','certWho','certTheme','certPct'].forEach(id => $(id).addEventListener('input', () => { if (DATA) renderCerts(); }));
 $('certToggle').onclick = () => {
   const w = $('certWrap'); w.classList.toggle('hidden');
   $('certToggle').textContent = w.classList.contains('hidden') ? 'معاينة الشهادات' : 'إخفاء المعاينة';
