@@ -25,59 +25,143 @@
   :root{
     --teal:#1E9E8A; --teal-deep:#0F6E62; --teal-soft:#E4F4F1; --gold:#C9A227; --gold-soft:#FBF4DC;
     --sheet:#FFFFFF;   /* خلفية الصفحات والشهادات */
-    --paper:#F1F3F2; --ink:#1E2A26; --muted:#6B7A74; --line:#DCE5E1; --red:#C62828;
+    --paper:#F3F8F6; --ink:#1E2A26; --muted:#6B7A74; --line:#DCE5E1; --red:#C62828;
+    --coral:#EF7352;          /* لون القلم الملوّن في زخارف الواجهة */
+    --grid:#E2EEE9;           /* خطوط ورق المربعات */
     --l1:#4CBF8E; --l2:#2AA79B; --l3:#3D9BE9; --l4:#F39A3C; --l5:#F26D6D;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Saudi","IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;background:var(--paper);color:var(--ink);line-height:1.6}
+  /* خلفية الواجهة ورق مربعات كدفتر الرياضيات؛ صفحات التقرير تبقى بيضاء فوقها */
+  body{margin:0;font-family:"Saudi","IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+       color:var(--ink);line-height:1.6;background-color:var(--paper);
+       background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                        linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+       background-size:28px 28px;background-position:-1px -1px}
   .wrap{width:min(1180px,94%);margin:0 auto}
-  .topstrip{height:6px;background:linear-gradient(90deg,var(--gold) 0 22%,#fff 22% 40%,var(--teal) 40% 66%,#fff 66% 78%,var(--teal-deep) 78% 100%)}
-  header.app{background:var(--sheet);border-bottom:1px solid var(--line);padding:14px 0 12px}
-  header.app .rhead{margin-bottom:0}
-  header.app .org{font-family:"Saudi",Amiri,serif;font-size:1.45rem;font-weight:700;color:var(--teal-deep);line-height:1.3}
-  header.app .org span{display:block;font-family:"Saudi","IBM Plex Sans Arabic";font-size:.78rem;font-weight:500;color:var(--muted)}
-  header.app .exam{color:var(--teal-deep);font-weight:600}
-  main{padding:26px 0 70px}
-  .panel{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:22px 26px 24px;margin-bottom:22px}
-  .panel h2{position:relative;text-align:center;margin:4px 0 14px;font-size:1.02rem;font-weight:600}
-  .panel h2::before{content:"";position:absolute;top:50%;left:0;right:0;border-top:3px double var(--line)}
-  .panel h2 span{position:relative;display:inline-block;background:var(--sheet);border:1.5px solid var(--teal);border-radius:8px;padding:7px 26px;color:var(--teal-deep)}
-  .panel p.lead{margin:0 0 20px;color:var(--muted);font-size:.9rem;text-align:center}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:22px 14px}
-  .grid > div{position:relative}
-  label{display:block;font-size:.86rem;color:var(--muted);margin-bottom:5px}
-  .grid label:not(.plain-label){position:absolute;top:-9px;right:12px;z-index:1;margin:0;background:var(--sheet);padding:0 7px;font-size:.75rem;font-weight:600;color:var(--teal-deep)}
-  .plain-label{text-align:center;margin-bottom:8px}
-  input[type=number],input[type=text],select{width:100%;padding:12px;border:1.5px solid var(--teal);
-    border-radius:10px;font:inherit;font-size:1.06rem;background:#fff;color:var(--ink);
-    font-weight:600;text-align:center}
-  input[type=number]{font-size:1.16rem;letter-spacing:.02em}
-  input::placeholder{font-weight:400;color:#A9B7B1}
-  .search input[type=search],.search select{font-weight:500}
-  input:focus,select:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-  .drop{border:2px dashed var(--teal);border-radius:12px;padding:22px;text-align:center;background:var(--teal-soft);cursor:pointer;font-weight:600;color:var(--teal-deep)}
-  .drop.over,.drop:hover{border-color:var(--teal)}
+  /* ===== واجهة الأداة =====
+     التقرير والشهادات تحتفظان بطابع نموذج الوزارة؛ أما الواجهة فهي أداة عمل:
+     حدود هادئة، والتركواز محجوز للإجراء الأساسي والحالة النشطة فقط. */
+  .topstrip{height:4px;background:linear-gradient(90deg,var(--teal-deep),var(--teal) 45%,var(--gold) 75%,var(--coral))}
+  header.app{background:var(--sheet);border-bottom:1px solid var(--line);padding:16px 0}
+  .apphead{display:flex;align-items:center;gap:14px}
+  .apphead img{height:38px;mix-blend-mode:multiply}
+  .apphead h1{margin:0;font-size:1.22rem;font-weight:700;color:var(--ink);line-height:1.3}
+  .apphead p{margin:2px 0 0;font-size:.82rem;color:var(--muted)}
+  /* شريط العمليات: توقيع بصري لمادة الرياضيات دون صور */
+  .ops{margin-inline-start:auto;display:flex;gap:9px;font-size:1.05rem;font-weight:700;
+       letter-spacing:.02em;user-select:none}
+  .ops span{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+            background:#F2F7F5;border:1px solid var(--line);color:var(--muted)}
+  .ops span:nth-child(1){color:var(--teal);border-color:#BFDED6}
+  .ops span:nth-child(2){color:var(--coral);border-color:#F6D2C7}
+  .ops span:nth-child(3){color:var(--gold);border-color:#EADFB4}
+  .ops span:nth-child(4){color:var(--teal-deep);border-color:#BFDED6}
+  @media(max-width:640px){.ops{display:none}}
+  main{padding:24px 0 80px}
+
+  .maintabs{display:flex;gap:4px;background:#E7ECEA;border-radius:12px;padding:4px;
+            margin:0 0 20px;width:fit-content}
+  .mtab{background:transparent;border:0;padding:10px 24px;color:var(--muted);font-weight:600;
+        border-radius:9px;transition:background .15s,color .15s}
+  .mtab:hover{color:var(--ink)}
+  .mtab.active{color:var(--teal-deep);background:var(--sheet);box-shadow:0 1px 3px rgba(0,0,0,.07)}
+
+  /* شريط البيانات الثابتة: سطر واحد يعرض القيم الحالية ويُفتح عند الحاجة */
+  .settings{background:var(--sheet);border:1px solid var(--line);border-radius:12px;
+            margin:0 0 20px;padding:0}
+  .settings summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;
+                    padding:13px 18px;font-weight:500;color:var(--muted);font-size:.9rem}
+  .settings summary::-webkit-details-marker{display:none}
+  .settings summary b{color:var(--ink);font-weight:600}
+  /* الحقول الناقصة تظهر في سطر الملخص حتى لا تضيع داخل لوحة مطوية */
+  .settings .miss{color:#9A6B08;background:#FDF4E0;border-radius:5px;padding:1px 7px;font-weight:600}
+  .settings .sumact{margin-inline-start:auto;color:var(--teal-deep);font-weight:600;font-size:.86rem}
+  .settings[open] summary{border-bottom:1px solid var(--line)}
+  .settings[open] .sumact::after{content:" ▲";font-size:.7em}
+  .settings:not([open]) .sumact::after{content:" ▼";font-size:.7em}
+  .settings .grid{padding:20px 18px}
+
+  .panel{background:var(--sheet);border:1px solid var(--line);border-radius:12px;
+         padding:22px 24px 24px;margin-bottom:20px}
+  .panel h2{margin:0 0 4px;font-size:1.05rem;font-weight:700;color:var(--ink);text-align:right;
+            display:flex;align-items:center;gap:10px}
+  .panel h2 .op{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+                background:var(--teal-soft);color:var(--teal-deep);font-size:1rem;font-weight:700}
+  .panel h2 span:not(.op){display:inline-block;padding-bottom:7px;border-bottom:2px solid var(--teal)}
+  .panel p.lead{margin:14px 0 18px;color:var(--muted);font-size:.88rem;text-align:right;
+                max-width:70ch;line-height:1.85}
+  .panel p.lead b{color:var(--ink);font-weight:600}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px 14px}
+  label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:6px;font-weight:500}
+  .plain-label{margin-bottom:8px}
+  input[type=number],input[type=text],select,textarea{width:100%;padding:11px 13px;
+    border:1px solid var(--line);border-radius:9px;font:inherit;font-size:.98rem;
+    background:var(--sheet);color:var(--ink);font-weight:500;text-align:right;
+    transition:border-color .15s,box-shadow .15s}
+  select{cursor:pointer}
+  textarea{line-height:1.95;resize:vertical}
+  input::placeholder,textarea::placeholder{font-weight:400;color:#AAB6B2}
+  input:hover,select:hover,textarea:hover{border-color:#C3D0CC}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(30,158,138,.14)}
+  button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+  /* منطقة الرفع هي بطل الصفحة، والدرجة الكلية بجانبها لأنهما ما يتغيّر كل مرة */
+  .worksplit{display:grid;grid-template-columns:1fr 210px;gap:16px;align-items:stretch}
+  @media(max-width:700px){.worksplit{grid-template-columns:1fr}}
+  .worksplit .sidefields{display:flex;flex-direction:column;justify-content:center;gap:14px}
+  .worksplit .sidefields input{text-align:center;font-size:1.45rem;font-weight:700;padding:14px 12px;
+    border-bottom:3px solid var(--teal);border-radius:9px 9px 5px 5px}
+  .worksplit .sidefields input:focus{border-bottom-color:var(--teal-deep)}
+  .drop{position:relative;overflow:hidden;border:2px dashed #C6D4D0;border-radius:11px;
+        padding:28px 20px;text-align:center;cursor:pointer;font-weight:600;color:var(--muted);
+        min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        gap:2px;background-color:#FBFDFC;
+        background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                         linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+        background-size:22px 22px;
+        transition:border-color .15s,background-color .15s,color .15s}
+  .drop:hover,.drop.over{border-color:var(--teal);background-color:var(--teal-soft);color:var(--teal-deep)}
+  .drop > *{position:relative;z-index:1}
+  .drop .doodle{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.5;pointer-events:none}
   .drop input{display:none}
-  .drop .file{font-weight:600;color:var(--teal-deep);margin-top:6px;min-height:1.4em}
-  details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
-  summary{cursor:pointer;color:var(--teal-deep);font-size:.92rem;font-weight:500}
-  .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px}
-  button{font:inherit;border:0;border-radius:10px;padding:11px 20px;cursor:pointer;font-weight:600}
-  .btn-primary{background:var(--teal);color:#fff}.btn-primary:hover{background:var(--teal-deep)}
-  .btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{filter:brightness(.92)}
-  .btn-ghost{background:#fff;color:var(--teal-deep);border:1px solid var(--teal)}.btn-ghost:hover{background:var(--teal-soft)}
-  .btn-link{background:none;color:var(--muted);padding:6px 4px;text-decoration:underline;font-weight:500}
-  .error{background:#FBEAE8;color:var(--red);border-radius:10px;padding:12px 14px;margin-top:14px;display:none}
+  .drop .hint{display:block;font-weight:400;font-size:.84rem;margin-top:5px;color:var(--muted)}
+  .drop .file{font-weight:700;color:var(--teal-deep);margin-top:9px;min-height:1.3em}
+
+  details:not(.settings){margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+  summary{cursor:pointer;color:var(--teal-deep);font-size:.89rem;font-weight:600}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  button{font:inherit;border:0;border-radius:9px;padding:11px 22px;cursor:pointer;font-weight:600;
+         transition:background .15s,filter .15s}
+  .btn-primary{background:var(--teal);color:#fff;padding:12px 30px}
+  .btn-primary:hover{background:var(--teal-deep)}
+  .btn-gold{background:var(--gold);color:#fff}.btn-gold:hover{filter:brightness(.93)}
+  .btn-ghost{background:var(--sheet);color:var(--ink);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal-deep)}
+  .btn-link{background:none;color:var(--muted);padding:6px 2px;text-decoration:underline;font-weight:500}
+  .btn-link:hover{color:var(--teal-deep)}
+
+  .error{background:#FDEDEB;color:var(--red);border:1px solid #F3C9C4;border-radius:9px;
+         padding:12px 14px;margin-top:14px;display:none;font-size:.9rem}
+  .detect{background:#F4F8F7;color:var(--teal-deep);border:1px solid #D9E6E2;border-radius:9px;
+          padding:12px 14px;margin-top:14px;font-size:.86rem;line-height:1.9;white-space:pre-line}
   .note{font-size:.84rem;color:var(--muted);margin-top:8px}
   .hidden{display:none!important}
-  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;justify-content:center}
-  .tab{background:var(--sheet);border:1.5px solid var(--line);padding:8px 20px;color:var(--muted);font-weight:600;border-radius:8px}
-  .tab:hover{border-color:var(--teal)}
+
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{background:var(--sheet);border:1px solid var(--line);padding:8px 18px;color:var(--muted);
+       font-weight:600;border-radius:8px}
+  .tab:hover{border-color:var(--teal);color:var(--ink)}
   .tab.active{color:#fff;background:var(--teal);border-color:var(--teal)}
-  .check{display:inline-flex;align-items:center;gap:8px;background:var(--teal-soft);padding:8px 14px;border-radius:999px;font-size:.9rem;cursor:pointer}
+  .check{display:inline-flex;align-items:center;gap:8px;background:#F2F6F5;border:1px solid var(--line);
+         padding:9px 15px;border-radius:999px;font-size:.88rem;font-weight:500;cursor:pointer;
+         margin-bottom:0}
+  .check:hover{border-color:var(--teal)}
   .check input{accent-color:var(--teal)}
   .search{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
-  .search input[type=search]{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+  .search input[type=search]{flex:1;min-width:200px}
   .search select{width:auto;min-width:160px}
 
   /* ---------- صفحات التقرير (A4) ---------- */
@@ -169,6 +253,7 @@
           font-family:"Saudi","El Messiri","IBM Plex Sans Arabic",sans-serif}
   .nafs-name{left:0;right:0;bottom:48.6%;text-align:center;font-size:2.35rem;letter-spacing:.01em}
   .nafs-name .cls{font-size:1.05rem;font-weight:500;color:#7D77B0;margin-inline-start:.8em;vertical-align:.3em}
+  .nafs-teacher{left:9%;width:33.8%;bottom:21.1%;text-align:center;font-size:1.05rem;font-weight:500;color:#5F58A0}
   .nafs-principal{left:9%;width:33.8%;bottom:17.2%;text-align:center;font-size:1.2rem;font-weight:500}
   .nafs-date{left:58.8%;width:31.6%;bottom:17.2%;text-align:center;font-size:1.2rem;font-weight:500}
   .cert[data-theme="national"] .inner{inset:0;padding:0;display:block}
@@ -250,19 +335,29 @@
 
 <div class="topstrip"></div>
 <header class="app">
-  <div class="wrap rhead">
-    <div class="org">نظام تحليل نتائج الاختبارات<span>تحليل، ترتيب، رسوم بيانية، تقارير PDF، وشهادات تفوق</span></div>
-    <div class="logo"><img src="/logo" alt="" onerror="this.remove()"><div class="wm">وزارة التعليم<small>Ministry of Education</small></div></div>
-    <div class="exam">نموذج تحليل النتائج</div>
+  <div class="wrap apphead">
+    <img src="/logo" alt="وزارة التعليم" onerror="this.remove()">
+    <div>
+      <h1>تحليل نتائج الاختبارات</h1>
+      <p id="headSub">الصف السادس الابتدائي · الإدارة العامة للتعليم بمنطقة الرياض</p>
+    </div>
+    <div class="ops" aria-hidden="true"><span>+</span><span>−</span><span>×</span><span>÷</span></div>
   </div>
 </header>
 
 <main class="wrap">
 
-  <!-- ===================== الإعداد ===================== -->
-  <section class="panel" id="setup">
-    <h2><span>١. بيانات التقرير</span></h2>
-    <p class="lead">تظهر هذه البيانات في رأس التقرير وتذييله وفي الشهادات. اسم المدرسة والمديرة مُعبّآن مسبقًا ويمكن تعديلهما. باقي الحقول اختيارية؛ ما يُترك فارغًا لا يظهر أو يظهر بنقاط للتعبئة اليدوية. الإدارة التعليمية ثابتة: الإدارة العامة للتعليم بمنطقة الرياض.</p>
+  <nav class="maintabs no-print">
+    <button class="mtab active" data-pane="paneGrades">تحليل الدرجات</button>
+    <button class="mtab" data-pane="paneThanks">شهادات الشكر</button>
+  </nav>
+
+  <!-- بيانات ثابتة تخدم التقرير والشهادتين؛ مطوية لأنها تُضبط مرة واحدة -->
+  <details class="settings no-print" id="settingsBox">
+    <summary>
+      <span id="settingsSummary"></span>
+      <span class="sumact">تعديل</span>
+    </summary>
     <div class="grid">
       <div><label>اسم المدرسة</label><input type="text" id="m_school" value="الابتدائية 327"></div>
       <div><label>المادة</label><input type="text" id="m_subject" placeholder="مثال: الرياضيات"></div>
@@ -271,28 +366,49 @@
       <div><label>السنة / الفصل الدراسي</label><input type="text" id="m_term" placeholder="مثال: الفصل الأول / ١٤٤٨هـ"></div>
       <div><label>اسم المعلمة</label><input type="text" id="m_teacher" placeholder="يظهر في تذييل الصفحة"></div>
       <div><label>اسم مديرة المدرسة</label><input type="text" id="m_principal" value="جميلة العتيبي"></div>
-      <div><label>الطلاب / الطالبات</label>
-        <select id="m_gender"><option value="f">طالبات</option><option value="m">طلاب</option></select></div>
       <div><label>تاريخ الشهادات</label><input type="text" id="m_date" placeholder="مثال: ١٤٤٨/٢/١٥هـ"></div>
     </div>
+  </details>
 
-  </section>
+  <div id="paneGrades">
 
   <section class="panel" id="upload">
-    <h2><span>٢. ملف الدرجات</span></h2>
-    <p class="lead">إما شيت لكل فصل (اسم الشيت = اسم الفصل) بعمودي <b>اسم الطالب</b> و<b>الدرجة</b>، أو شيت واحد بعمود <b>الفصل</b> إضافي.</p>
-    <div class="grid">
-      <div style="grid-column:1/-1">
-        <div class="drop" id="drop">
-          <input type="file" id="file" accept=".xlsx,.xls,.csv">
-          <div>اضغط هنا أو اسحب الملف لرفعه</div>
-          <div class="file" id="fileName"></div>
+    <h2><span class="op">Σ</span><span>ملف الدرجات</span></h2>
+    <div class="worksplit" style="margin-top:18px">
+      <div class="drop" id="drop">
+        <svg class="doodle" viewBox="0 0 560 170" preserveAspectRatio="xMidYMid meet" fill="none" aria-hidden="true">
+          <g stroke="#C2D8D1" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M18 140h84l-84-68z"/><path d="M34 140v-13h15"/>
+            <path d="M474 44h68v25h-68z"/><path d="M486 44v9M498 44v15M510 44v9M522 44v15"/>
+            <circle cx="506" cy="124" r="21"/><path d="M506 124h21"/>
+          </g>
+          <text x="432" y="131" fill="#CFE1DB" font-size="22" font-weight="700"
+                font-family="Saudi, sans-serif">½</text>
+        </svg>
+        <input type="file" id="file" accept=".xlsx,.xls,.csv">
+        <div>اسحبي ملف الدرجات هنا
+          <span class="hint">أو اضغطي للاختيار — صيغة Excel أو CSV</span>
         </div>
-        <button class="btn-link" onclick="location.href='/template'">تحميل نموذج إكسل جاهز</button>
+        <div class="file" id="fileName"></div>
       </div>
-      <div><label>درجة القياس (الدرجة الكلية)</label><input type="number" id="total" value="20" min="1" step="0.5"></div>
-      <div><label>حد "يحتاج متابعة" (%)</label><input type="number" id="support" value="60" min="0" max="100"></div>
+      <div class="sidefields">
+        <div><label>الدرجة الكلية</label><input type="number" id="total" value="20" min="1" step="0.5"></div>
+        <div><label>حد المتابعة %</label><input type="number" id="support" value="60" min="0" max="100"></div>
+      </div>
     </div>
+    <div class="actions">
+      <button class="btn-primary" id="run">إنشاء التقرير</button>
+      <button class="btn-link" onclick="location.href='/template'">تحميل نموذج إكسل جاهز</button>
+      <span id="loading" class="note hidden">جارٍ التحليل…</span>
+    </div>
+    <div class="error" id="error"></div>
+    <div class="detect hidden" id="detection"></div>
+    <details>
+      <summary>كيف يقرأ النظام الملف؟</summary>
+      <p class="lead">شيت لكل فصل (اسم الشيت = اسم الفصل)، أو شيت واحد فيه عمود <b>الفصل</b>.
+        لا يشترط أن يبدأ الجدول من الصف الأول: تُتجاوز العناوين والصفوف الفارغة ويُبحث عن صف الأعمدة
+        تلقائيًا، ويُعرض بعد الإنشاء ما تعرّف عليه النظام للتأكد.</p>
+    </details>
     <details>
       <summary>تعديل حدود التقديرات (النسبة المئوية)</summary>
       <div class="grid" style="margin-top:12px">
@@ -303,18 +419,13 @@
       </div>
       <p class="note">أقل من حد "مقبول" يُصنّف ضعيف. الحدود الافتراضية مطابقة لنموذج تحليل النتائج المعتمد.</p>
     </details>
-    <div class="actions">
-      <button class="btn-primary" id="run">إنشاء التقرير</button>
-      <span id="loading" class="note hidden">جارٍ التحليل…</span>
-    </div>
-    <div class="error" id="error"></div>
   </section>
 
   <div id="results" class="hidden">
 
     <!-- ===================== التصدير ===================== -->
     <section class="panel no-print">
-      <h2><span>الطباعة والتصدير</span></h2>
+      <h2><span class="op">⎙</span><span>الطباعة والتصدير</span></h2>
       <p class="lead">اختيار الأقسام المطلوبة ثم الطباعة. النطاق المطبوع هو المعروض في التقرير (فصل معين أو الصف كامل)، ومن نافذة الطباعة يمكن اختيار "حفظ بصيغة PDF" بدل الطابعة.</p>
       <div class="actions" style="margin-top:0">
         <label class="check"><input type="checkbox" id="x_report" checked> التقرير الإحصائي</label>
@@ -333,7 +444,7 @@
     <section class="panel printable">
       <div class="tabs no-print" id="tabs"></div>
       <div class="search no-print">
-        <input type="search" id="search" placeholder="بحث باسم الطالب…">
+        <input type="search" id="search" placeholder="بحث باسم الطالبة…">
         <select id="levelFilter"></select>
       </div>
       <div class="sheet-scroll"><div id="report"></div></div>
@@ -341,7 +452,7 @@
 
     <!-- ===================== التحاليل الإضافية ===================== -->
     <section class="panel" id="analytics">
-      <h2><span>التحاليل الإضافية — الصف كامل</span></h2>
+      <h2><span class="op">%</span><span>التحاليل الإضافية — الصف كامل</span></h2>
       <div class="cards" id="gradeCards"></div>
       <div class="cols">
         <div><h3>مقارنة التقديرات بين الفصول</h3><div class="cbox"><canvas id="cCompare"></canvas></div></div>
@@ -365,7 +476,7 @@
 
     <!-- ===================== الشهادات ===================== -->
     <section class="panel">
-      <h2><span>شهادات التفوق</span></h2>
+      <h2><span class="op">★</span><span>شهادات التفوق</span></h2>
       <p class="lead" id="certLead"></p>
       <div class="grid" style="margin-bottom:6px">
         <div><label>نطاق الشهادات</label><select id="certScope"></select></div>
@@ -395,9 +506,73 @@
     </section>
 
   </div>
+  </div>
+
+  <!-- ===================== شهادات الشكر والمشاركة ===================== -->
+  <div id="paneThanks" class="hidden">
+
+    <section class="panel">
+      <h2><span class="op">١</span><span>نوع الشهادة ونصها</span></h2>
+      <p class="lead">شهادات لا تعتمد على درجات: تُختار مناسبة جاهزة ويُعدَّل نصها، ثم تُنشأ شهادة لكل طالبة.
+        الرموز <b>{الاسم}</b> و<b>{الفصل}</b> و<b>{البرنامج}</b> و<b>{المدرسة}</b> تُستبدل تلقائيًا.</p>
+      <div class="grid">
+        <div><label>المناسبة</label><select id="tk_preset"></select></div>
+        <div><label>اسم البرنامج / المناسبة</label><input type="text" id="tk_program" placeholder="مثال: برنامج موهبة"></div>
+        <div><label>عنوان الشهادة</label><input type="text" id="tk_title" value="شكر وتقدير"></div>
+        <div><label>الزخارف</label>
+          <select id="tk_decor">
+            <option value="plain">عامة</option>
+            <option value="study">دراسية</option>
+          </select>
+        </div>
+        <div><label>ثيم الشهادة</label>
+          <select id="tk_theme">
+            <option value="purple">بنفسجي</option>
+            <option value="rose">وردي</option>
+            <option value="teal">تركوازي</option>
+            <option value="national">اليوم الوطني (أخضر وذهبي)</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <label class="plain-label">نص الشهادة</label>
+        <textarea id="tk_body" rows="5"></textarea>
+      </div>
+      <div class="actions">
+        <label class="check"><input type="checkbox" id="tk_showClass" checked> إظهار الفصل بجانب الاسم</label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2><span class="op">٢</span><span>أسماء الطالبات</span></h2>
+      <p class="lead">تُلصق الأسماء مباشرة (اسم في كل سطر)، أو يُرفع ملف Excel ويستخرج النظام الأسماء منه.
+        لإضافة الفصل يُكتب بعد الاسم بفاصلة: نورة محمد، ٦/ج</p>
+      <textarea id="tk_names" rows="7" placeholder="نورة محمد&#10;سارة فهد، ٦/أ&#10;ريم خالد"></textarea>
+      <div class="actions">
+        <div class="drop" id="tk_drop" style="flex:1">
+          <input type="file" id="tk_file" accept=".xlsx,.xls,.csv">
+          <div>أو ارفعي ملف Excel يحتوي عمود أسماء</div>
+          <div class="file" id="tk_fileName"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="tk_build">إنشاء الشهادات</button>
+        <button class="btn-gold hidden" id="tk_print">طباعة الشهادات</button>
+        <span class="note" id="tk_status"></span>
+      </div>
+      <div class="error" id="tk_error"></div>
+    </section>
+
+    <section class="panel hidden" id="tk_previewPanel">
+      <h2><span class="op">٣</span><span>المعاينة</span></h2>
+      <p class="lead" id="tk_lead"></p>
+      <div class="sheet-scroll"><div id="tk_certs"></div></div>
+    </section>
+
+  </div>
 </main>
 
-<footer class="wrap note" style="text-align:center;padding-bottom:30px;border-top:3px double var(--line);padding-top:14px">الترتيب متسلسل حسب النسبة المئوية، وعند التساوي حسب الاسم أبجديًا. الشهادات تُنشأ لجميع الحاصلين على تقدير ممتاز.</footer>
+<footer class="wrap note no-print" style="text-align:center;padding-bottom:34px;border-top:1px solid var(--line);padding-top:16px">الترتيب متسلسل حسب النسبة المئوية، وعند التساوي حسب الاسم أبجديًا.</footer>
 
 <div id="printArea"></div>
 
@@ -413,7 +588,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 
 /* بيانات التقرير المدخلة يدويًا */
 function meta(){
-  const g = $('m_gender').value === 'f';
+  const g = true;  // جميع النصوص بصيغة المؤنث
   return {
     admin: ADMIN, school: $('m_school').value.trim(),
     subject: $('m_subject').value.trim() || '—', exam: $('m_exam').value.trim(),
@@ -441,19 +616,45 @@ $('run').onclick = async () => {
   ['total','support','t_excellent','t_vgood','t_good','t_pass'].forEach(k => fd.append(k, $(k).value));
   $('loading').classList.remove('hidden');
   try {
-    const res = await fetch('/analyze', {method:'POST', body: fd});
-    const json = await res.json();
-    if (!res.ok) return showError(json.error || 'حدث خطأ.');
+    let json;
+    try {
+      const res = await fetch('/analyze', {method:'POST', body: fd});
+      json = await res.json();
+      if (!res.ok) return showError(json.error || 'حدث خطأ.');
+    } catch (e) { return showError('تعذّر الاتصال بالخادم.'); }
     DATA = json;
     renderAll();
-  } catch (e) { showError('تعذّر الاتصال بالخادم.'); }
+  } catch (e) {
+    showError('تعذّر عرض النتائج: ' + e.message);
+    console.error(e);
+  }
   finally { $('loading').classList.add('hidden'); }
 };
 function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display='block'; }
 
 /* إعادة رسم التقرير عند تعديل البيانات اليدوية */
-['m_school','m_subject','m_exam','m_grade','m_term','m_teacher','m_principal','m_gender','m_date']
-  .forEach(id => $(id).addEventListener('input', () => { if (DATA) { renderReport(); renderCerts(); } }));
+const META_FIELDS = ['m_school','m_subject','m_exam','m_grade','m_term','m_teacher','m_principal','m_date'];
+META_FIELDS.forEach(id => $(id).addEventListener('input', () => {
+  updateSettingsSummary();
+  if (DATA) { renderReport(); renderCerts(); }
+  if (typeof TK_LIST !== 'undefined' && TK_LIST.length) tkRender();
+}));
+
+/* ملخص البيانات الثابتة في سطر واحد، ليراجعها دون فتح اللوحة */
+function updateSettingsSummary(){
+  const m = meta();
+  const miss = t => `<span class="miss">${t}</span>`;
+  const parts = [
+    `<b>${esc(m.school || 'المدرسة')}</b>`,
+    m.subject !== '—' ? esc(m.subject) : miss('أضيفي المادة'),
+    m.teacher ? 'معلمة ' + esc(m.teacher) : miss('أضيفي اسم المعلمة'),
+  ];
+  $('settingsSummary').innerHTML = parts.join(' · ');
+  $('headSub').textContent = 'الصف السادس الابتدائي'
+    + (m.subject !== '—' ? ' · ' + m.subject : '')
+    + ' · الإدارة العامة للتعليم بمنطقة الرياض';
+}
+updateSettingsSummary();
 
 /* ---------------- أجزاء التقرير ---------------- */
 function reportHead(m){
@@ -561,8 +762,9 @@ function excellentStudents(){
     (!scopeValue || s.class === scopeValue) &&
     (who === 'pass' ? s.pct >= passMark : s.level === DATA.levels[0]));
 }
-function certDecor(national){
-  // زخارف الشهادة: رايات، آلة حاسبة، كأس، كتب، دفتر وأقلام، نجوم ورموز حسابية
+function certDecor(national, style = 'study', bookTitles = null){
+  // زخارف الشهادة. style: 'study' يضيف الآلة الحاسبة والدفتر، و'plain' يقتصر
+  // على الرايات والكأس والكتب والزخارف الصغيرة لتناسب الشهادات غير الدراسية.
   const star = (x,y,r,f,o=1) => `<path transform="translate(${x} ${y}) scale(${r/10})" opacity="${o}" fill="${f}"
     d="M0-10 2.9-3.5 10-2.7 4.7 2.3 6.1 9.4 0 5.8-6.1 9.4-4.7 2.3-10-2.7-2.9-3.5Z"/>`;
   const heart = (x,y,r,f,o=1) => `<path transform="translate(${x} ${y}) scale(${r/10})" opacity="${o}" fill="${f}"
@@ -630,8 +832,20 @@ function certDecor(national){
     dot(1150,700,5,'var(--c3)'), dot(152,470,5,'var(--pink)',.55),
   ].join('');
 
+  // وسام يملأ الجانب الأيسر في النمط العام بدل الدفتر والآلة الحاسبة
+  const medal = `<g transform="translate(150 640) scale(1.05)">
+    <path d="M30 86 10 160l34-14 22 28 18-74Z" fill="var(--pink)" opacity=".9"/>
+    <path d="M110 86l20 74 34-14-22 28-18-74Z" fill="var(--c2)" opacity=".9"/>
+    <path d="M118 86 138 160l-34-14-22 28-18-74Z" fill="var(--c2)" opacity=".9"/>
+    <circle cx="74" cy="60" r="58" fill="var(--c3)"/>
+    <circle cx="74" cy="60" r="46" fill="none" stroke="#fff" stroke-width="3" opacity=".65"/>
+    ${star(74,60,26,'var(--c1)',.8)}
+  </g>`;
+
+  const study = style === 'study';
+  const titles = bookTitles || ['النجاح', 'التميز', study ? 'الرياضيات' : 'العطاء'];
   return `<svg class="deco" viewBox="0 0 1400 990" preserveAspectRatio="none">
-    ${bunting}${calculator}${trophy}${books(1120,858,['النجاح','التميز','الرياضيات'],.82)}${notebook}${sprinkles}
+    ${bunting}${study ? calculator : ''}${trophy}${books(1120,858,titles,.82)}${study ? notebook : medal}${sprinkles}
   </svg>`;
 }
 function nationalDecor(){
@@ -701,33 +915,30 @@ function certRule(){
 }
 function nafsCertHTML(s, m){
   // قالب نافس يحمل نصه الثابت؛ تُضاف فوقه الحقول المتغيرة فقط
-  const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
   const cls = esc(s.class) ? `<span class="cls">(${esc(s.class)})</span>` : '';
   const pct = $('certPct').checked ? `<span class="cls">${fmt(s.pct)}٪</span>` : '';
   return `<div class="cert" data-theme="nafs">
     <img class="certbg" src="/static/cert-nafs.jpg" alt="">
     <div class="inner">
       <div class="nafs-f nafs-name">${esc(s.name)}${cls}${pct}</div>
+      <div class="nafs-f nafs-teacher">${m.teacher ? 'معلمة المادة/ ' + esc(m.teacher) : ''}</div>
       <div class="nafs-f nafs-principal">${esc(m.principal || '')}</div>
       <div class="nafs-f nafs-date">${esc(arabicDigits(m.date || ''))}</div>
     </div>
   </div>`;
 }
-function certHTML(s, m){
-  const she = m.female, theme = $('certTheme').value, showPct = $('certPct').checked;
+const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+/* الإطار المشترك لكل الشهادات: الزخارف والترويسة والعنوان والتذييل */
+function certFrame(theme, m, titleText, bodyHTML, decorStyle = 'study', bookTitles = null){
   const national = theme === 'national';
-  if (theme === 'nafs') return nafsCertHTML(s, m);
-  const subject = m.subject === '—' ? 'المادة' : m.subject;
-  const examPhrase = m.exam ? `${m.exam} لمادة ${subject}` : `اختبار ${subject}`;
-  const pctPhrase = showPct ? ` <span class="pct">بنسبة ${fmt(s.pct)}٪</span>` : '';
-  const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
   return `<div class="cert" data-theme="${theme}">
     ${national ? '<img class="certbg" src="/static/cert-national.jpg" alt="">' : ''}
     <div class="band-out"></div><div class="band-fill"></div>
     <div class="band-in"></div><div class="band-dash"></div>
     ${certCorners()}
     ${national ? nationalDecor() : ''}
-    ${certDecor(national)}
+    ${certDecor(national, decorStyle, bookTitles)}
     <div class="inner">
       <div class="org">
         <img src="/logo" alt="وزارة التعليم" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'orgfallback',textContent:'وزارة التعليم'}))">
@@ -737,26 +948,36 @@ function certHTML(s, m){
         <img class="mark-emblem" src="/emblem" alt="" onerror="this.remove()">
         <img class="mark-flag" src="/flag" alt="" onerror="this.remove()">
       </div>` : ''}
-      <div class="title">${titleFlourish('l')}شكر وتقدير${titleFlourish('r')}</div>
+      <div class="title">${titleFlourish('l')}${esc(titleText)}${titleFlourish('r')}</div>
       ${national ? '<div class="slogan">هٰكَذا نَبْني الوَطَن</div>' : ''}
       ${certRule()}
       <div class="mid">
-      <div class="body">
-        <p class="intro">${she ? 'يسر معلمة' : 'يسر معلم'} ${esc(subject)} أن ${she ? 'تشكر الطالبة الرائعة' : 'يشكر الطالب الرائع'}</p>
-        <p class="nameline"><span class="name">${esc(s.name)}</span><span class="cls">${esc(s.class) ? `(${esc(s.class)})` : ''}</span></p>
-        <p>${she ? 'وأسرتها الكريمة على تفوقها في' : 'وأسرته الكريمة على تفوقه في'} ${esc(examPhrase)}${pctPhrase}</p>
-        ${national ? `<p>سائلين المولى أن يوفق${she ? 'ها' : 'ه'} لبناء الوطن وخدمته.</p>` : ''}
-        <p>مع تمنياتي ${she ? 'لها' : 'له'} بالاستمرار في طريق التفوق والنجاح.</p>
-        <p class="teacher">مع حبي وتقديري لكم/ ${she ? 'معلمتكم' : 'معلمكم'} ${esc(m.teacher || '................')}</p>
-      </div>
-      ${endDivider()}
+        <div class="body">${bodyHTML}</div>
+        ${endDivider()}
       </div>
       <div class="sig">
         <span class="date">${m.date ? 'التاريخ: ' + esc(m.date) : ''}</span>
-        <span>${she ? 'مديرة' : 'مدير'} المدرسة/ ${esc(m.principal || '................')}</span>
+        <span>مديرة المدرسة/ ${esc(m.principal || '................')}</span>
       </div>
     </div>
   </div>`;
+}
+function certHTML(s, m){
+  const theme = $('certTheme').value, showPct = $('certPct').checked;
+  const national = theme === 'national';
+  if (theme === 'nafs') return nafsCertHTML(s, m);
+  const subject = m.subject === '—' ? 'المادة' : m.subject;
+  const examPhrase = m.exam ? `${m.exam} لمادة ${subject}` : `اختبار ${subject}`;
+  const pctPhrase = showPct ? ` <span class="pct">بنسبة ${fmt(s.pct)}٪</span>` : '';
+  const body = `
+    <p class="intro">يسر معلمة ${esc(subject)} أن تشكر الطالبة الرائعة</p>
+    <p class="nameline"><span class="name">${esc(s.name)}</span><span class="cls">${esc(s.class) ? `(${esc(s.class)})` : ''}</span></p>
+    <p>وأسرتها الكريمة على تفوقها في ${esc(examPhrase)}${pctPhrase}</p>
+    ${national ? '<p>سائلين المولى أن يوفقها لبناء الوطن وخدمته.</p>' : ''}
+    <p>مع تمنياتي لها بالاستمرار في طريق التفوق والنجاح.</p>
+    <p class="teacher">مع حبي وتقديري لكم/ معلمتكم ${esc(m.teacher || '................')}</p>`;
+  const subjectBook = m.subject === '—' ? 'الاجتهاد' : m.subject;
+  return certFrame(theme, m, 'شكر وتقدير', body, 'study', ['النجاح', 'التميز', subjectBook]);
 }
 function renderCerts(){
   const m = meta(), list = excellentStudents();
@@ -787,6 +1008,14 @@ function makeChart(id, config){
   charts[id] = new Chart($(id), config);
 }
 function renderAnalytics(){
+  // الرسوم تعتمد مكتبة خارجية؛ تعذّر تحميلها لا يمنع عرض التقرير والشهادات
+  if (typeof Chart === 'undefined'){
+    $('analytics').querySelectorAll('.cbox').forEach(box =>
+      box.innerHTML = '<p class="note" style="text-align:center;padding-top:40px">'
+        + 'تعذّر تحميل مكتبة الرسوم البيانية. تحقّقي من الاتصال بالإنترنت ثم أعيدي تحميل الصفحة.</p>');
+    renderAnalyticsTables();
+    return;
+  }
   const g = DATA.grade_stats;
   $('gradeCards').innerHTML = `
     <div class="card"><b>${g.count}</b><span>عدد الطلاب</span></div>
@@ -805,6 +1034,17 @@ function renderAnalytics(){
   makeChart('cHist', {type:'bar',
     data:{labels:DATA.histogram.labels, datasets:[{data:DATA.histogram.grade, backgroundColor:'#3D9BE9', borderRadius:6}]},
     options:opts({plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}, x:{reverse:true}}})});
+  renderAnalyticsTables();
+}
+function renderAnalyticsTables(){
+  const g = DATA.grade_stats;
+  $('gradeCards').innerHTML = `
+    <div class="card"><b>${g.count}</b><span>عدد الطلاب</span></div>
+    <div class="card"><b>${fmt(g.avg)}٪</b><span>متوسط النسبة</span></div>
+    <div class="card"><b>${fmt(g.median)}٪</b><span>الوسيط</span></div>
+    <div class="card"><b>${fmt(g.std)}</b><span>الانحراف المعياري</span></div>
+    <div class="card"><b>${fmt(g.attainment)}٪</b><span>نسبة التحصيل</span></div>
+    <div class="card"><b>${fmt(g.pass_rate)}٪</b><span>نسبة الاجتياز</span></div>`;
   $('tblClassStats').innerHTML = DATA.classes.map(c => { const s = DATA.class_stats[c];
     return `<tr><td>${esc(c)}</td><td>${s.count}</td><td>${fmt(s.avg)}</td><td class="${s.gap>=0?'gap-pos':'gap-neg'}">${s.gap>0?'+':''}${fmt(s.gap)}</td><td>${fmt(s.attainment)}</td><td>${fmt(s.pass_rate)}</td></tr>`}).join('');
   $('tblTop').innerHTML = DATA.top10.map(s=>`<tr><td>${s.rank_grade}</td><td>${esc(s.name)}</td><td>${esc(s.class)}</td><td>${fmt(s.pct)}</td></tr>`).join('');
@@ -830,9 +1070,124 @@ function renderAll(){
   tabs.children[0].click();
   renderAnalytics();
   renderCerts();
+  const detect = (DATA.detection || []).join('\n');
+  $('detection').textContent = detect
+    + (DATA.skipped ? `\nتم تجاهل ${DATA.skipped} صفًا بلا اسم أو بدرجة غير رقمية.` : '');
+  $('detection').classList.toggle('hidden', !detect);
   if (DATA.warnings.length) showError(DATA.warnings.join(' | '));
   $('results').scrollIntoView({behavior:'smooth'});
 }
+
+/* ---------------- شهادات الشكر والمشاركة ---------------- */
+// مناسبات جاهزة؛ {الاسم} و{الفصل} و{البرنامج} و{المدرسة} تُستبدل عند الإنشاء
+const THANKS_PRESETS = [
+  {id:'participation', label:'مشاركة في برنامج أو نشاط', title:'شكر وتقدير',
+   program:'برنامج موهبة',
+   body:'تتقدم إدارة {المدرسة} بالشكر والتقدير للطالبة\n{الاسم}\nلمشاركتها المتميزة في {البرنامج}\nسائلين الله لها دوام التوفيق والنجاح.'},
+  {id:'value', label:'تميز في قيمة سلوكية', title:'شهادة تميز',
+   program:'قيمة التعاون',
+   body:'تشهد إدارة {المدرسة} بأن الطالبة\n{الاسم}\nكانت مثالًا يُحتذى في {البرنامج}\nفاستحقت الشكر والتقدير، ودمتِ قدوةً لزميلاتك.'},
+  {id:'attendance', label:'حضور فعالية أو أسبوع تعريفي', title:'شهادة حضور',
+   program:'أسبوع المهنة',
+   body:'يسر إدارة {المدرسة} أن تمنح هذه الشهادة للطالبة\n{الاسم}\nتقديرًا لحضورها ومشاركتها في {البرنامج}\nشاكرين لها حرصها واهتمامها.'},
+  {id:'volunteer', label:'عمل تطوعي أو مبادرة', title:'شهادة عرفان',
+   program:'مبادرة مدرستي أجمل',
+   body:'عرفانًا وتقديرًا لجهود الطالبة\n{الاسم}\nالتطوعية في {البرنامج}\nتتقدم إدارة {المدرسة} بخالص الشكر، فالعطاء شيمة الكرام.'},
+  {id:'reading', label:'إنجاز قرائي', title:'شهادة إنجاز',
+   program:'تحدي القراءة',
+   body:'تهنئ إدارة {المدرسة} الطالبة\n{الاسم}\nعلى ما حققته في {البرنامج}\nفالقراءة نافذة العقل، ودمتِ من أهلها.'},
+  {id:'ideal', label:'الطالبة المثالية', title:'شهادة تكريم',
+   program:'الفصل الدراسي الأول',
+   body:'تفخر إدارة {المدرسة} باختيار الطالبة\n{الاسم}\nطالبةً مثاليةً خلال {البرنامج}\nلما تحلّت به من خلق رفيع والتزام مشرّف.'},
+  {id:'improve', label:'تحسن وتطور ملحوظ', title:'شهادة تشجيع',
+   program:'الفصل الدراسي الأول',
+   body:'تشيد إدارة {المدرسة} بالطالبة\n{الاسم}\nلما أظهرته من تحسن وتطور ملحوظ خلال {البرنامج}\nفالخطوة الصادقة أول الطريق، واصلي تألقك.'},
+  {id:'parent', label:'شكر لولية الأمر', title:'شكر وتقدير',
+   program:'متابعة أبنائكم',
+   body:'تتقدم إدارة {المدرسة} بالشكر الجزيل لولية أمر الطالبة\n{الاسم}\nعلى تعاونها المثمر في {البرنامج}\nفالشراكة بين البيت والمدرسة سرّ نجاح أبنائنا.'},
+  {id:'custom', label:'نص مخصص', title:'شكر وتقدير', program:'',
+   body:'تتقدم إدارة {المدرسة} بالشكر والتقدير للطالبة\n{الاسم}\n'},
+];
+let TK_LIST = [];
+
+function tkFillPreset(){
+  const preset = THANKS_PRESETS.find(p => p.id === $('tk_preset').value) || THANKS_PRESETS[0];
+  $('tk_title').value = preset.title;
+  $('tk_body').value = preset.body;
+  if (preset.program) $('tk_program').placeholder = 'مثال: ' + preset.program;
+  if (TK_LIST.length) tkRender();
+}
+function tkParseNames(text){
+  // كل سطر اسم، ويمكن إتباعه بفاصلة أو شرطة أو جدولة ثم اسم الفصل
+  return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+    const parts = line.split(/\s*[,،\t]\s*|\s+[-–—]\s+/);
+    return {name: parts[0].trim(), class: (parts[1] || '').trim()};
+  }).filter(e => e.name);
+}
+function tkBodyHTML(entry, m){
+  const program = $('tk_program').value.trim() || $('tk_program').placeholder.replace('مثال: ', '');
+  const showClass = $('tk_showClass').checked;
+  const cls = showClass && entry.class ? `<span class="cls">(${esc(entry.class)})</span>` : '';
+  const nameHTML = `<span class="name">${esc(entry.name)}</span>${cls}`;
+  return $('tk_body').value.split(/\n+/).map(line => line.trim()).filter(Boolean).map(line => {
+    const isName = line.includes('{الاسم}');
+    const html = esc(line)
+      .replace('{الاسم}', nameHTML)
+      .replace(/\{الفصل\}/g, esc(entry.class || ''))
+      .replace(/\{البرنامج\}/g, esc(program))
+      .replace(/\{المدرسة\}/g, esc(arabicDigits(m.school || 'المدرسة')));
+    return `<p class="${isName ? 'nameline' : ''}">${html}</p>`;
+  }).join('') + (m.teacher ? `<p class="teacher">مع حبي وتقديري لكم/ معلمتكم ${esc(m.teacher)}</p>` : '');
+}
+function tkRender(){
+  const m = meta(), theme = $('tk_theme').value;
+  const decorStyle = $('tk_decor').value;
+  const title = $('tk_title').value.trim() || 'شكر وتقدير';
+  $('tk_certs').innerHTML = TK_LIST
+    .map(e => certFrame(theme, m, title, tkBodyHTML(e, m), decorStyle)).join('');
+  $('tk_lead').textContent = `${TK_LIST.length} شهادة — صفحة مستقلة لكل طالبة (A4 عرضي).`;
+  $('tk_previewPanel').classList.remove('hidden');
+  $('tk_print').classList.remove('hidden');
+}
+function tkError(msg){ const e = $('tk_error'); e.textContent = msg; e.style.display = msg ? 'block' : 'none'; }
+
+const tkDrop = $('tk_drop'), tkFile = $('tk_file');
+tkDrop.onclick = () => tkFile.click();
+tkFile.onchange = () => $('tk_fileName').textContent = tkFile.files[0]?.name || '';
+['dragenter','dragover'].forEach(e => tkDrop.addEventListener(e, ev => {ev.preventDefault(); tkDrop.classList.add('over')}));
+['dragleave','drop'].forEach(e => tkDrop.addEventListener(e, ev => {ev.preventDefault(); tkDrop.classList.remove('over')}));
+tkDrop.addEventListener('drop', ev => { tkFile.files = ev.dataTransfer.files; tkFile.onchange(); });
+
+$('tk_build').onclick = async () => {
+  tkError('');
+  const typed = tkParseNames($('tk_names').value);
+  if (typed.length) { TK_LIST = typed; $('tk_status').textContent = ''; return tkRender(); }
+  if (!tkFile.files[0]) return tkError('اكتبي الأسماء في المربع أو ارفعي ملف Excel.');
+  $('tk_status').textContent = 'جارٍ قراءة الملف…';
+  try {
+    const fd = new FormData(); fd.append('file', tkFile.files[0]);
+    const res = await fetch('/names', {method:'POST', body: fd});
+    const json = await res.json();
+    if (!res.ok) return tkError(json.error || 'تعذّرت قراءة الملف.');
+    TK_LIST = json.students;
+    $('tk_names').value = TK_LIST.map(e => e.class ? `${e.name}، ${e.class}` : e.name).join('\n');
+    $('tk_status').textContent = (json.detection || []).join(' | ');
+    tkRender();
+  } catch (e) { tkError('تعذّر الاتصال بالخادم.'); }
+  finally { if (!TK_LIST.length) $('tk_status').textContent = ''; }
+};
+['tk_theme','tk_decor','tk_title','tk_body','tk_program','tk_showClass'].forEach(id =>
+  $(id).addEventListener('input', () => { if (TK_LIST.length) tkRender(); }));
+$('tk_preset').onchange = tkFillPreset;
+$('tk_preset').innerHTML = THANKS_PRESETS.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+tkFillPreset();
+
+/* ---------------- التبويبات الرئيسية ---------------- */
+document.querySelectorAll('.mtab').forEach(btn => btn.onclick = () => {
+  document.querySelectorAll('.mtab').forEach(b => b.classList.toggle('active', b === btn));
+  ['paneGrades','paneThanks'].forEach(id => $(id).classList.toggle('hidden', id !== btn.dataset.pane));
+  window.scrollTo({top:0, behavior:'smooth'});
+});
 
 /* ---------------- الطباعة والتصدير ---------------- */
 function canvasesToImages(node){
@@ -873,6 +1228,12 @@ $('printReport').onclick = () => {
   }
   if (!node.children.length) return $('pdfStatus').textContent = 'اختر قسمًا واحدًا على الأقل.';
   printNode(node, false, $('pdfStatus'));
+};
+$('tk_print').onclick = () => {
+  if (!TK_LIST.length) return tkError('لا توجد شهادات لطباعتها.');
+  const node = document.createElement('div');
+  node.innerHTML = $('tk_certs').innerHTML;
+  printNode(node, true, $('tk_status'));
 };
 $('certPrint').onclick = () => {
   if (!excellentStudents().length) return $('certStatus').textContent = 'لا توجد شهادات لطباعتها في النطاق المختار.';
