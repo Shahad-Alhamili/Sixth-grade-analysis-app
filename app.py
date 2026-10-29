@@ -123,47 +123,138 @@ def group_stats(df, pass_threshold, total):
     }
 
 
+HEADER_SCAN_ROWS = 30   # عدد الصفوف الأولى التي يُبحث فيها عن صف العناوين
+MIN_DATA_ROWS = 1       # أقل عدد صفوف بيانات أسفل العنوان ليُقبل الصف كعنوان
+
+
+def match_alias(cell, keys):
+    """
+    مطابقة نص خلية مع أسماء الأعمدة المعروفة.
+    ترجع (المفتاح، نوع المطابقة) حيث النوع 2 لمطابقة تامة و1 لمطابقة جزئية، أو (None, 0).
+    """
+    text = normalize(cell)
+    if not text or text in ("nan", "none"):
+        return None, 0
+    for key in keys:
+        if any(text == normalize(a) for a in COLUMN_ALIASES[key]):
+            return key, 2
+    for key in keys:
+        if any(normalize(a) in text for a in COLUMN_ALIASES[key]):
+            return key, 1
+    return None, 0
+
+
+def detect_header(raw, keys, required=("name",)):
+    """
+    تحديد صف العناوين داخل ورقة خام (مقروءة بدون عناوين).
+
+    يُفحص كل صف من الصفوف الأولى وتُحسب أعمدته المطابقة لأسماء معروفة؛ يفوز الصف
+    صاحب أعلى عدد مطابقات تامة ثم جزئية، بشرط أن يحتوي الأعمدة المطلوبة وأن يليه
+    صف بيانات واحد على الأقل. يتيح ذلك تجاوز الصفوف الفارغة أو العناوين التمهيدية
+    (اسم المدرسة، عنوان التقرير) التي تسبق الجدول.
+
+    ترجع (رقم صف العنوان، {المفتاح: رقم العمود}) أو (None, {}).
+    """
+    best_row, best_map, best_score = None, {}, (0, 0)
+    limit = min(HEADER_SCAN_ROWS, len(raw))
+    for i in range(limit):
+        exact, partial, mapping = {}, {}, {}
+        for j, cell in enumerate(raw.iloc[i]):
+            key, kind = match_alias(cell, keys)
+            if not key:
+                continue
+            if kind == 2 and key not in exact:
+                exact[key] = j
+            elif kind == 1 and key not in partial:
+                partial[key] = j
+        mapping = {**partial, **exact}
+        if not all(k in mapping for k in required):
+            continue
+        # يجب أن يتبع صف العنوان بيانات فعلية
+        below = raw.iloc[i + 1:]
+        if below.dropna(how="all").shape[0] < MIN_DATA_ROWS:
+            continue
+        score = (len(exact), len(mapping))
+        if score > best_score:
+            best_row, best_map, best_score = i, mapping, score
+    return best_row, best_map
+
+
 def read_sheets(file):
-    """قراءة الملف المرفوع وإرجاع قائمة (اسم الشيت، DataFrame). ملفات CSV تُعامل كشيت واحد."""
-    if file.filename.lower().endswith(".csv"):
-        return [("الدرجات", pd.read_csv(file))]
-    sheets = pd.read_excel(file, sheet_name=None)
-    return [(name, df) for name, df in sheets.items() if not df.dropna(how="all").empty]
-
-
-def build_dataset(sheets):
     """
-    دمج الشيتات في جدول واحد بالأعمدة: name, class, score.
-    - إذا احتوى الشيت على عمود الفصل، يُستخدم.
-    - وإلا يُعتبر اسم الشيت هو اسم الفصل.
-    يرجع (DataFrame, قائمة أخطاء).
+    قراءة الملف المرفوع وإرجاع قائمة (اسم الورقة، DataFrame خام بدون عناوين).
+    تُقرأ الأوراق بلا عناوين ليجري تحديد صف العنوان لاحقًا، فتُتجاوز الصفوف
+    التمهيدية أو الفارغة التي قد تسبق الجدول. ملفات CSV تُعامل كورقة واحدة.
     """
-    frames, errors = [], []
-    for sheet_name, df in sheets:
-        df = df.dropna(how="all")
-        df.columns = [str(c).strip() for c in df.columns]
-        name_col = find_column(df, "name")
-        score_col = find_column(df, "score")
-        class_col = find_column(df, "class")
+    name = (file.filename or "").lower()
+    if name.endswith(".csv"):
+        return [("الدرجات", pd.read_csv(file, header=None, dtype=object))]
+    sheets = pd.read_excel(file, sheet_name=None, header=None, dtype=object)
+    return [(n, df) for n, df in sheets.items() if not df.dropna(how="all").empty]
 
-        missing = [label for label, col in (("اسم الطالب", name_col), ("الدرجة", score_col)) if col is None]
-        if missing:
-            errors.append(f"الشيت «{sheet_name}»: الأعمدة الناقصة ({'، '.join(missing)}). "
-                          f"الأعمدة الموجودة: {'، '.join(df.columns)}")
+
+def build_dataset(sheets, need_score=True):
+    """
+    دمج أوراق الملف في جدول واحد بالأعمدة: name, class, score.
+
+    لكل ورقة يُحدَّد صف العناوين تلقائيًا ثم تُقرأ البيانات أسفله. مصدر الفصل:
+    عمود الفصل داخل الورقة إن وُجد، وإلا اسم الورقة نفسها. عند need_score=False
+    لا تُشترط الدرجة (يُستخدم لشهادات لا تعتمد على درجات).
+
+    ترجع (DataFrame، قائمة أخطاء، قائمة ملاحظات تشخيصية).
+    """
+    keys = ["name", "class", "score"] if need_score else ["name", "class"]
+    required = ("name", "score") if need_score else ("name",)
+
+    frames, errors, notes = [], [], []
+    for sheet_name, raw in sheets:
+        # يُحتفظ بالفهرس الأصلي ليعكس رقم الصف كما هو في ملف Excel
+        raw = raw.dropna(how="all")
+        if raw.empty:
+            continue
+        excel_rows = list(raw.index)
+        raw = raw.reset_index(drop=True)
+
+        header_row, mapping = detect_header(raw, keys, required)
+        if header_row is None:
+            preview = "، ".join(
+                str(c).strip() for c in raw.iloc[0].tolist()[:6]
+                if not pd.isna(c) and str(c).strip()
+            ) or "صفوف فارغة"
+            missing = "اسم الطالبة" + ("" if not need_score else " والدرجة")
+            errors.append(f"الورقة «{sheet_name}»: لم يُعثر على جدول يحتوي عمود {missing}. "
+                          f"أول صف فيها: {preview}")
             continue
 
-        class_values = (df[class_col].astype(str).str.strip() if class_col is not None
-                        else pd.Series([str(sheet_name).strip()] * len(df), index=df.index))
+        body = raw.iloc[header_row + 1:].reset_index(drop=True)
+        name_col = mapping["name"]
+        class_col = mapping.get("class")
+        score_col = mapping.get("score")
 
-        frames.append(pd.DataFrame({
-            "name": df[name_col].astype(str).str.strip(),
-            "class": class_values.str.translate(ARABIC_DIGITS),
-            "score": df[score_col].map(to_number),
-        }))
+        data = {"name": body[name_col].astype(str).str.strip()}
+        if class_col is not None:
+            class_values = body[class_col].astype(str).str.strip()
+            class_values = class_values.replace({"nan": "", "None": ""})
+            # الخلايا المدموجة تترك فراغات أسفل قيمة الفصل، فتُملأ بالقيمة السابقة
+            class_values = class_values.replace("", pd.NA).ffill().fillna(str(sheet_name).strip())
+            class_source = "عمود داخل الورقة"
+        else:
+            class_values = pd.Series([str(sheet_name).strip()] * len(body), index=body.index)
+            class_source = "اسم الورقة"
+        data["class"] = class_values.astype(str).str.translate(ARABIC_DIGITS)
+        data["score"] = body[score_col].map(to_number) if score_col is not None else pd.NA
+
+        frame = pd.DataFrame(data)
+        frames.append(frame)
+
+        header_cells = [str(raw.iloc[header_row, c]).strip()
+                        for c in (name_col, class_col, score_col) if c is not None]
+        notes.append(f"الورقة «{sheet_name}»: الجدول يبدأ من الصف {excel_rows[header_row] + 1} "
+                     f"(الأعمدة: {'، '.join(header_cells)}) — الفصل من {class_source}")
 
     if not frames:
-        return pd.DataFrame(columns=["name", "class", "score"]), errors
-    return pd.concat(frames, ignore_index=True), errors
+        return pd.DataFrame(columns=["name", "class", "score"]), errors, notes
+    return pd.concat(frames, ignore_index=True), errors, notes
 
 
 def style_sheet(ws, headers, rows):
@@ -356,7 +447,7 @@ def analyze():
     if not sheets:
         return jsonify(error="الملف لا يحتوي على أي بيانات."), 400
 
-    data, errors = build_dataset(sheets)
+    data, errors, notes = build_dataset(sheets)
     if data.empty:
         return jsonify(error=" | ".join(errors) or "لا توجد بيانات صالحة في الملف."), 400
 
@@ -422,6 +513,41 @@ def analyze():
         "needs_support": needs_support[["name", "class", "score", "pct", "level"]].to_dict("records"),
         "skipped": skipped,
         "warnings": errors,
+        "detection": notes,
+    })
+
+
+@app.route("/names", methods=["POST"])
+def names():
+    """
+    استخراج أسماء الطالبات من ملف Excel أو CSV دون اشتراط وجود درجات.
+    يُستخدم في شهادات المشاركة والتقدير التي لا تعتمد على اختبار.
+    """
+    file = request.files.get("file")
+    if not file or not file.filename:
+        return jsonify(error="لم يتم رفع ملف."), 400
+
+    try:
+        sheets = read_sheets(file)
+    except Exception:
+        return jsonify(error="تعذّرت قراءة الملف. الصيغ المدعومة: Excel (.xlsx) أو CSV."), 400
+    if not sheets:
+        return jsonify(error="الملف لا يحتوي على أي بيانات."), 400
+
+    data, errors, notes = build_dataset(sheets, need_score=False)
+    if data.empty:
+        return jsonify(error=" | ".join(errors)
+                       or "لم يُعثر على عمود باسم الطالبات في الملف."), 400
+
+    data = data[~data["name"].isin(["", "nan", "None"])]
+    data = data.drop_duplicates(subset=["name", "class"]).reset_index(drop=True)
+    if data.empty:
+        return jsonify(error="لا توجد أسماء صالحة في الملف."), 400
+
+    return jsonify({
+        "students": data[["name", "class"]].to_dict("records"),
+        "warnings": errors,
+        "detection": notes,
     })
 
 
