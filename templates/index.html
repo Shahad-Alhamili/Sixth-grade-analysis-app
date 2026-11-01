@@ -163,6 +163,17 @@
   .search{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
   .search input[type=search]{flex:1;min-width:200px}
   .search select{width:auto;min-width:160px}
+  /* قوائم من لم تختبر: مجموعة لكل فصل */
+  .clsblock{margin-top:22px}
+  .clsblock h3{display:flex;align-items:center;gap:10px;font-size:.98rem;font-weight:700;
+               color:var(--ink);margin:0 0 10px;text-align:right}
+  .clsblock h3 .cnt{font-size:.8rem;font-weight:600;color:var(--teal-deep);
+                    background:var(--teal-soft);border-radius:999px;padding:3px 11px}
+  .clsblock h3 .bar{flex:1;height:7px;border-radius:99px;background:#EDF2F0;overflow:hidden}
+  .clsblock h3 .bar i{display:block;height:100%;background:var(--coral)}
+  .none{color:var(--teal-deep);background:#F1F8F5;border:1px solid #D7E8E0;border-radius:9px;
+        padding:11px 14px;font-size:.9rem;font-weight:600}
+  .why{font-size:.84rem;color:var(--muted)}
 
   /* ---------- صفحات التقرير (A4) ---------- */
   .sheet-scroll{overflow-x:auto;padding:4px}
@@ -350,6 +361,7 @@
   <nav class="maintabs no-print">
     <button class="mtab active" data-pane="paneGrades">تحليل الدرجات</button>
     <button class="mtab" data-pane="paneThanks">شهادات الشكر</button>
+    <button class="mtab" data-pane="paneAbsent">من لم تختبر</button>
   </nav>
 
   <!-- بيانات ثابتة تخدم التقرير والشهادتين؛ مطوية لأنها تُضبط مرة واحدة -->
@@ -567,6 +579,48 @@
       <h2><span class="op">٣</span><span>المعاينة</span></h2>
       <p class="lead" id="tk_lead"></p>
       <div class="sheet-scroll"><div id="tk_certs"></div></div>
+    </section>
+
+  </div>
+
+  <!-- ===================== من لم تختبر ===================== -->
+  <div id="paneAbsent" class="hidden">
+
+    <section class="panel">
+      <h2><span class="op">≠</span><span>مقارنة الكشف بالدرجات</span></h2>
+      <p class="lead">يُرفع كشف الطالبات الكامل وملف درجات الاختبار، فتُطابَق الأسماء ويظهر من لم تختبر
+        في كل فصل. المطابقة تتجاوز اختلاف الهمزات والتاء المربوطة وكلمة «بنت» وترتيب الكلمات،
+        وما كان تطابقه تقريبيًا يُعرض في قائمة مستقلة للمراجعة.</p>
+      <div class="worksplit" style="grid-template-columns:1fr 1fr;margin-top:18px">
+        <div class="drop" id="ab_rosterDrop">
+          <input type="file" id="ab_roster" accept=".xlsx,.xls,.csv">
+          <div>كشف الطالبات الكامل
+            <span class="hint">كل الطالبات المسجلات، بالفصول</span>
+          </div>
+          <div class="file" id="ab_rosterName"></div>
+        </div>
+        <div class="drop" id="ab_gradesDrop">
+          <input type="file" id="ab_grades" accept=".xlsx,.xls,.csv">
+          <div>ملف درجات الاختبار
+            <span class="hint">من حضرن الاختبار ودرجاتهن</span>
+          </div>
+          <div class="file" id="ab_gradesName"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="ab_run">استخراج من لم تختبر</button>
+        <button class="btn-ghost hidden" id="ab_excel">تصدير Excel</button>
+        <button class="btn-ghost hidden" id="ab_print">طباعة</button>
+        <span class="note" id="ab_status"></span>
+      </div>
+      <div class="error" id="ab_error"></div>
+      <div class="detect hidden" id="ab_detect"></div>
+    </section>
+
+    <section class="panel hidden" id="ab_resultPanel">
+      <h2><span class="op">Σ</span><span>النتيجة</span></h2>
+      <div class="cards" id="ab_cards"></div>
+      <div id="ab_body"></div>
     </section>
 
   </div>
@@ -1182,10 +1236,133 @@ $('tk_preset').onchange = tkFillPreset;
 $('tk_preset').innerHTML = THANKS_PRESETS.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
 tkFillPreset();
 
+/* تنزيل ملف مُنشأ في المتصفح مع الحفاظ على اسمه */
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ---------------- من لم تختبر ---------------- */
+let AB = null;
+
+function abDrop(dropId, inputId, nameId){
+  const d = $(dropId), f = $(inputId);
+  d.onclick = () => f.click();
+  f.onchange = () => $(nameId).textContent = f.files[0]?.name || '';
+  ['dragenter','dragover'].forEach(e => d.addEventListener(e, ev => {ev.preventDefault(); d.classList.add('over')}));
+  ['dragleave','drop'].forEach(e => d.addEventListener(e, ev => {ev.preventDefault(); d.classList.remove('over')}));
+  d.addEventListener('drop', ev => { f.files = ev.dataTransfer.files; f.onchange(); });
+}
+abDrop('ab_rosterDrop','ab_roster','ab_rosterName');
+abDrop('ab_gradesDrop','ab_grades','ab_gradesName');
+
+function abError(msg){ const e = $('ab_error'); e.textContent = msg; e.style.display = msg ? 'block' : 'none'; }
+
+function abRender(){
+  const t = AB.totals;
+  $('ab_cards').innerHTML = `
+    <div class="card"><b>${t.roster}</b><span>في الكشف</span></div>
+    <div class="card"><b>${t.graded}</b><span>اختبرن</span></div>
+    <div class="card"><b>${t.absent}</b><span>لم تختبر</span></div>
+    <div class="card"><b>${t.roster ? fmt(t.absent / t.roster * 100) : 0}٪</b><span>نسبة الغياب</span></div>`;
+
+  let html = '';
+  if (!AB.absent.length){
+    html += '<p class="none">جميع الطالبات في الكشف لهن درجات — لا توجد غائبة عن الاختبار.</p>';
+  } else {
+    AB.classes.forEach(cls => {
+      const rows = AB.absent.filter(r => String(r.class).trim() === cls);
+      if (!rows.length) return;
+      const st = AB.stats[cls] || {total: rows.length};
+      const pct = st.total ? Math.round(rows.length / st.total * 100) : 0;
+      html += `<div class="clsblock">
+        <h3>فصل ${esc(cls)}
+          <span class="cnt">${rows.length} من ${st.total}</span>
+          <span class="bar"><i style="width:${pct}%"></i></span>
+        </h3>
+        <table class="plain"><thead><tr><th>م</th><th>اسم الطالبة</th><th>الحالة</th></tr></thead>
+        <tbody>${rows.map((r,i) => `<tr><td>${i+1}</td><td>${esc(r.name)}</td>
+          <td class="why">${esc(r.reason)}</td></tr>`).join('')}</tbody></table>
+      </div>`;
+    });
+  }
+
+  if (AB.review.length){
+    html += `<div class="clsblock"><h3>تطابق تقريبي يحتاج مراجعة
+      <span class="cnt">${AB.review.length}</span></h3>
+      <p class="why">طوبقت هذه الأسماء رغم اختلاف كتابتها بين الملفين، فاعتُبرت مختبِرة. تأكدي أنها الطالبة نفسها.</p>
+      <table class="plain"><thead><tr><th>في الكشف</th><th>الفصل</th><th>في ملف الدرجات</th><th>سبب المراجعة</th></tr></thead>
+      <tbody>${AB.review.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.class)}</td>
+        <td>${esc(r.matched)}</td><td class="why">${esc(r.how)}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+
+  if (AB.extra.length){
+    html += `<div class="clsblock"><h3>في ملف الدرجات وليست في الكشف
+      <span class="cnt">${AB.extra.length}</span></h3>
+      <p class="why">أسماء لها درجات ولا مقابل لها في الكشف — غالبًا خطأ إملائي أو طالبة منقولة.</p>
+      <table class="plain"><thead><tr><th>اسم الطالبة</th><th>الفصل</th></tr></thead>
+      <tbody>${AB.extra.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.class)}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+
+  $('ab_body').innerHTML = html;
+  $('ab_resultPanel').classList.remove('hidden');
+  ['ab_excel','ab_print'].forEach(id => $(id).classList.remove('hidden'));
+}
+
+$('ab_run').onclick = async () => {
+  abError('');
+  if (!$('ab_roster').files[0] || !$('ab_grades').files[0])
+    return abError('ارفعي الملفين: كشف الطالبات وملف الدرجات.');
+  $('ab_status').textContent = 'جارٍ المقارنة…';
+  let json;
+  try {
+    const fd = new FormData();
+    fd.append('roster', $('ab_roster').files[0]);
+    fd.append('grades', $('ab_grades').files[0]);
+    const res = await fetch('/absent', {method:'POST', body: fd});
+    json = await res.json();
+    if (!res.ok) { $('ab_status').textContent = ''; return abError(json.error || 'حدث خطأ.'); }
+  } catch (e) { $('ab_status').textContent = ''; return abError('تعذّر الاتصال بالخادم.'); }
+  finally { $('ab_status').textContent = ''; }
+
+  AB = json;
+  const notes = (json.detection || []).join('\n');
+  $('ab_detect').textContent = notes;
+  $('ab_detect').classList.toggle('hidden', !notes);
+  if (json.warnings.length) abError(json.warnings.join(' | '));
+  abRender();
+  $('ab_resultPanel').scrollIntoView({behavior:'smooth'});
+};
+
+$('ab_excel').onclick = async () => {
+  if (!AB) return;
+  const res = await fetch('/absent_export', {method:'POST', headers:{'Content-Type':'application/json'},
+                                             body: JSON.stringify(AB)});
+  if (!res.ok) return abError('فشل التصدير.');
+  downloadBlob(await res.blob(), 'من_لم_تختبر.xlsx');
+};
+
+$('ab_print').onclick = () => {
+  if (!AB) return;
+  const m = meta(), node = document.createElement('div');
+  node.style.cssText = 'padding:14mm;background:#fff';
+  node.innerHTML = `<h2 style="text-align:center;margin:0 0 4mm">كشف الطالبات اللاتي لم يختبرن</h2>
+    <p style="text-align:center;color:#555;margin:0 0 8mm">${esc(m.school || '')}
+      ${m.subject !== '—' ? ' — ' + esc(m.subject) : ''}
+      ${m.exam ? ' — ' + esc(m.exam) : ''}</p>`
+    + $('ab_body').innerHTML;
+  printNode(node, false, $('ab_status'));
+};
+
 /* ---------------- التبويبات الرئيسية ---------------- */
 document.querySelectorAll('.mtab').forEach(btn => btn.onclick = () => {
   document.querySelectorAll('.mtab').forEach(b => b.classList.toggle('active', b === btn));
-  ['paneGrades','paneThanks'].forEach(id => $(id).classList.toggle('hidden', id !== btn.dataset.pane));
+  ['paneGrades','paneThanks','paneAbsent'].forEach(id => $(id).classList.toggle('hidden', id !== btn.dataset.pane));
   window.scrollTo({top:0, behavior:'smooth'});
 });
 
@@ -1244,8 +1421,7 @@ $('certPrint').onclick = () => {
 $('excel').onclick = async () => {
   const res = await fetch('/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(DATA)});
   if (!res.ok) return showError('فشل التصدير.');
-  const blob = await res.blob();
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'نتائج_التحليل.xlsx'; a.click();
+  downloadBlob(await res.blob(), 'نتائج_التحليل.xlsx');
 };
 </script>
 </body>

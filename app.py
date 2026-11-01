@@ -15,6 +15,7 @@
 التشغيل محليًا:
   python app.py
 """
+import difflib
 import io
 import os
 import re
@@ -203,7 +204,8 @@ def build_dataset(sheets, need_score=True):
 
     ترجع (DataFrame، قائمة أخطاء، قائمة ملاحظات تشخيصية).
     """
-    keys = ["name", "class", "score"] if need_score else ["name", "class"]
+    # عمود الدرجة يُكتشف دائمًا؛ need_score يحدد هل وجوده شرط لقبول الورقة
+    keys = ["name", "class", "score"]
     required = ("name", "score") if need_score else ("name",)
 
     frames, errors, notes = [], [], []
@@ -255,6 +257,76 @@ def build_dataset(sheets, need_score=True):
     if not frames:
         return pd.DataFrame(columns=["name", "class", "score"]), errors, notes
     return pd.concat(frames, ignore_index=True), errors, notes
+
+
+# كلمات نسب تُحذف قبل المقارنة لأنها تظهر في كشف دون آخر
+NAME_FILLERS = {"بنت", "بن", "ابن", "ابنه", "الطالبه", "الطالب"}
+FUZZY_THRESHOLD = 0.88   # أدنى تشابه يُقبل كتطابق تقريبي يحتاج مراجعة
+
+
+def name_key(name):
+    """مفتاح مقارنة للاسم: توحيد الحروف، إزالة الرموز وكلمات النسب، وضغط المسافات."""
+    text = normalize(name)
+    text = re.sub(r"[^\w\s]", " ", text)
+    parts = [w for w in text.split() if w and w not in NAME_FILLERS]
+    return " ".join(parts)
+
+
+def class_key(value):
+    """مفتاح مقارنة للفصل يتجاهل الفواصل وصيغة الأرقام (6/أ و6-أ سواء)."""
+    text = normalize(str(value)).translate(ARABIC_DIGITS)
+    return re.sub(r"[\s/\-_.]", "", text)
+
+
+def match_students(roster, grades):
+    """
+    مطابقة كشف الطالبات بملف الدرجات على ثلاث مراحل: تطابق تام للمفتاح، ثم تطابق
+    مجموعة الكلمات بصرف النظر عن ترتيبها، ثم تشابه نصي يتجاوز الحد المعتمد.
+    المرحلتان الأخيرتان تُسجَّلان للمراجعة لأنهما اجتهاد لا يقين.
+
+    ترجع (قائمة نتائج الكشف، مجموعة فهارس صفوف الدرجات المستخدمة).
+    """
+    by_key, by_tokens = {}, {}
+    for idx, row in grades.iterrows():
+        key = name_key(row["name"])
+        by_key.setdefault(key, []).append(idx)
+        by_tokens.setdefault(frozenset(key.split()), []).append(idx)
+
+    results, used = [], set()
+
+    def pick(candidates, cls):
+        """اختيار المرشح الأنسب: من نفس الفصل أولًا، ثم أول مرشح لم يُستخدم."""
+        same = [i for i in candidates if class_key(grades.at[i, "class"]) == cls]
+        for pool in (same, candidates):
+            for i in pool:
+                if i not in used:
+                    return i
+        return candidates[0] if candidates else None
+
+    for _, student in roster.iterrows():
+        key = name_key(student["name"])
+        cls = class_key(student["class"])
+        match, how = None, None
+
+        if key in by_key:
+            match, how = pick(by_key[key], cls), "exact"
+        else:
+            tokens = frozenset(key.split())
+            if tokens and tokens in by_tokens:
+                match, how = pick(by_tokens[tokens], cls), "tokens"
+            else:
+                best, ratio = None, 0.0
+                for cand_key, idxs in by_key.items():
+                    r = difflib.SequenceMatcher(None, key, cand_key).ratio()
+                    if r > ratio:
+                        best, ratio = idxs, r
+                if best and ratio >= FUZZY_THRESHOLD:
+                    match, how = pick(best, cls), "fuzzy"
+
+        if match is not None:
+            used.add(match)
+        results.append({"student": student, "match": match, "how": how})
+    return results, used
 
 
 def style_sheet(ws, headers, rows):
@@ -549,6 +621,127 @@ def names():
         "warnings": errors,
         "detection": notes,
     })
+
+
+def read_roster(file, label):
+    """قراءة ملف أسماء وإرجاع (DataFrame, أخطاء, ملاحظات) أو رفع ValueError برسالة عربية."""
+    try:
+        sheets = read_sheets(file)
+    except Exception:
+        raise ValueError(f"تعذّرت قراءة {label}. الصيغ المدعومة: Excel (.xlsx) أو CSV.")
+    if not sheets:
+        raise ValueError(f"{label} لا يحتوي على أي بيانات.")
+
+    data, errors, notes = build_dataset(sheets, need_score=False)
+    data = data[~data["name"].isin(["", "nan", "None"])].reset_index(drop=True)
+    if data.empty:
+        raise ValueError(" | ".join(errors) or f"لم يُعثر على عمود أسماء في {label}.")
+    return data, [f"{label}: {e}" for e in errors], [f"{label} — {n}" for n in notes]
+
+
+@app.route("/absent", methods=["POST"])
+def absent():
+    """
+    مقارنة كشف الطالبات الكامل بملف الدرجات لتحديد من لم تختبر.
+
+    تُعدّ الطالبة مختبِرة إذا طوبقت بصف في ملف الدرجات يحمل درجة رقمية. وما عدا
+    ذلك يُصنَّف: غير مدرجة في ملف الدرجات، أو مدرجة بلا درجة. كما تُرجَع أسماء
+    وردت في ملف الدرجات ولا مقابل لها في الكشف، لأنها غالبًا اختلاف إملائي.
+    """
+    try:
+        roster, r_err, r_notes = read_roster(request.files.get("roster"), "كشف الطالبات")
+        grades, g_err, g_notes = read_roster(request.files.get("grades"), "ملف الدرجات")
+    except ValueError as exc:
+        return jsonify(error=str(exc)), 400
+    except (AttributeError, TypeError):
+        return jsonify(error="يجب رفع الملفين: كشف الطالبات وملف الدرجات."), 400
+
+    roster = roster.drop_duplicates(subset=["name", "class"]).reset_index(drop=True)
+    results, _ = match_students(roster, grades)
+
+    absent_rows, review_rows = [], []
+    tested_idx = set()
+    for item in results:
+        student, idx, how = item["student"], item["match"], item["how"]
+        entry = {"name": student["name"], "class": student["class"]}
+        if idx is None:
+            absent_rows.append({**entry, "reason": "غير مدرجة في ملف الدرجات"})
+            continue
+        score = grades.at[idx, "score"]
+        if score is None or pd.isna(score):
+            absent_rows.append({**entry, "reason": "مدرجة في ملف الدرجات بلا درجة"})
+        else:
+            tested_idx.add(idx)
+        if how in ("tokens", "fuzzy"):
+            review_rows.append({**entry, "matched": str(grades.at[idx, "name"]),
+                                "how": "ترتيب مختلف للكلمات" if how == "tokens" else "تشابه إملائي"})
+
+    matched_any = {it["match"] for it in results if it["match"] is not None}
+    extra_rows = [
+        {"name": grades.at[i, "name"], "class": grades.at[i, "class"]}
+        for i in grades.index if i not in matched_any
+    ]
+
+    absent_keys = {(r["name"], r["class"]) for r in absent_rows}
+    classes = sorted({str(c).strip() for c in roster["class"] if str(c).strip()})
+    stats = {}
+    for cls in classes:
+        rows = roster[roster["class"].astype(str).str.strip() == cls]
+        total = int(len(rows))
+        missing = sum(1 for _, r in rows.iterrows() if (r["name"], r["class"]) in absent_keys)
+        stats[cls] = {"total": total, "absent": missing, "tested": total - missing}
+
+    absent_rows.sort(key=lambda r: (str(r["class"]), str(r["name"])))
+    return jsonify({
+        "classes": classes,
+        "absent": absent_rows,
+        "extra": extra_rows,
+        "review": review_rows,
+        "stats": stats,
+        "totals": {"roster": int(len(roster)), "graded": int(len(tested_idx)),
+                   "absent": len(absent_rows)},
+        "warnings": r_err + g_err,
+        "detection": r_notes + g_notes,
+    })
+
+
+@app.route("/absent_export", methods=["POST"])
+def absent_export():
+    """تصدير نتيجة المقارنة إلى Excel: ورقة لمن لم تختبر، وورقة إحصائيات، وورقتا مراجعة."""
+    payload = request.get_json(silent=True) or {}
+    absent_rows = payload.get("absent", [])
+    if not absent_rows:
+        return jsonify(error="لا توجد نتائج للتصدير."), 400
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "لم تختبر"
+    style_sheet(ws, ["م", "اسم الطالبة", "الفصل", "الحالة"],
+                [[i, r["name"], r["class"], r["reason"]] for i, r in enumerate(absent_rows, 1)])
+
+    stats = payload.get("stats", {})
+    style_sheet(wb.create_sheet("إحصائية الفصول"),
+                ["الفصل", "عدد الطالبات", "اختبرن", "لم تختبر", "نسبة الغياب %"],
+                [[c, v["total"], v["tested"], v["absent"],
+                  round(v["absent"] / v["total"] * 100, 1) if v["total"] else 0]
+                 for c, v in stats.items()])
+
+    review = payload.get("review", [])
+    if review:
+        style_sheet(wb.create_sheet("تطابق يحتاج مراجعة"),
+                    ["اسم الطالبة في الكشف", "الفصل", "الاسم في ملف الدرجات", "سبب المراجعة"],
+                    [[r["name"], r["class"], r["matched"], r["how"]] for r in review])
+
+    extra = payload.get("extra", [])
+    if extra:
+        style_sheet(wb.create_sheet("في الدرجات وليست بالكشف"),
+                    ["اسم الطالبة", "الفصل"], [[r["name"], r["class"]] for r in extra])
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return send_file(buf, as_attachment=True, download_name="من_لم_تختبر.xlsx",
+                     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 @app.route("/export", methods=["POST"])
