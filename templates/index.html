@@ -264,9 +264,14 @@
           font-family:"Saudi","El Messiri","IBM Plex Sans Arabic",sans-serif}
   .nafs-name{left:0;right:0;bottom:48.6%;text-align:center;font-size:2.35rem;letter-spacing:.01em}
   .nafs-name .cls{font-size:1.05rem;font-weight:500;color:#7D77B0;margin-inline-start:.8em;vertical-align:.3em}
-  .nafs-teacher{left:9%;width:33.8%;bottom:21.1%;text-align:center;font-size:1.05rem;font-weight:500;color:#5F58A0}
   .nafs-principal{left:9%;width:33.8%;bottom:17.2%;text-align:center;font-size:1.2rem;font-weight:500}
-  .nafs-date{left:58.8%;width:31.6%;bottom:17.2%;text-align:center;font-size:1.2rem;font-weight:500}
+  /* القالب يطبع «التاريخ» فوق الخط الأيمن؛ تُغطّى الكلمة بلون الورق ليحمل الخط
+     اسم المعلمة بدلًا منها، فتتوازن الشهادة بتوقيعين: المعلمة والإدارة. */
+  .nafs-teacher{left:58.8%;width:31.6%;bottom:17.2%;text-align:center;font-size:1.2rem;font-weight:500}
+  .nafs-cover{position:absolute;left:71.3%;width:9.4%;bottom:9.8%;height:6.2%;
+              background:#F9F9F7;z-index:1}
+  .nafs-tlabel{left:58.8%;width:31.6%;bottom:12.4%;text-align:center;font-size:1.32rem;
+               font-weight:700;z-index:2}
   .cert[data-theme="national"] .inner{inset:0;padding:0;display:block}
   .cert[data-theme="national"] .title{position:absolute;top:14.5%;left:0;right:0;margin:0;font-size:3.2rem}
   .cert[data-theme="national"] .slogan{position:absolute;top:25.5%;left:24%;right:24%;margin:0;font-size:2.3rem}
@@ -975,9 +980,10 @@ function nafsCertHTML(s, m){
     <img class="certbg" src="/static/cert-nafs.jpg" alt="">
     <div class="inner">
       <div class="nafs-f nafs-name">${esc(s.name)}${cls}${pct}</div>
-      <div class="nafs-f nafs-teacher">${m.teacher ? 'معلمة المادة/ ' + esc(m.teacher) : ''}</div>
       <div class="nafs-f nafs-principal">${esc(m.principal || '')}</div>
-      <div class="nafs-f nafs-date">${esc(arabicDigits(m.date || ''))}</div>
+      <div class="nafs-cover"></div>
+      <div class="nafs-f nafs-teacher">${esc(m.teacher || '')}</div>
+      <div class="nafs-f nafs-tlabel">معلمة المادة</div>
     </div>
   </div>`;
 }
