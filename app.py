@@ -17,6 +17,7 @@
 """
 import difflib
 import io
+import json
 import os
 import re
 from collections import deque
@@ -276,6 +277,78 @@ def class_key(value):
     """مفتاح مقارنة للفصل يتجاهل الفواصل وصيغة الأرقام (6/أ و6-أ سواء)."""
     text = normalize(str(value)).translate(ARABIC_DIGITS)
     return re.sub(r"[\s/\-_.]", "", text)
+
+
+def is_subsequence(short_tokens, full_tokens):
+    """هل تظهر كلمات الاسم المختصر داخل الاسم الكامل بالترتيب نفسه؟"""
+    it = iter(full_tokens)
+    return all(any(tok == f for f in it) for tok in short_tokens)
+
+
+def expand_names(entries, roster):
+    """
+    استكمال الأسماء المختصرة (ثنائية غالبًا) من كشف الطالبات إلى أسمائها الكاملة.
+
+    يُبحث أولًا داخل فصل الطالبة إن ذُكر، فإن لم يُذكر أو لم يُعثر على مرشح يُبحث
+    في الكشف كله. يُقبل الاسم الكامل إذا وردت كلمات الاسم المختصر داخله بالترتيب
+    نفسه، فيغطي ذلك «نورة محمد» ← «نورة محمد العتيبي» و«نورة العتيبي» ← الاسم ذاته.
+
+    لا يُختار اسم عند تعدد المرشحين: يُترك الاسم كما هو ويُعلَّم للمراجعة، لأن
+    الاختيار العشوائي بين طالبتين يطبع شهادة باسم خاطئ.
+
+    ترجع قائمة مدخلات، لكل منها name وclass وoriginal وstatus وchoices.
+    """
+    by_class, everyone = {}, []
+    for _, row in roster.iterrows():
+        full = str(row["name"]).strip()
+        tokens = name_key(full).split()
+        if not tokens:
+            continue
+        record = (tokens, full, str(row["class"]).strip())
+        everyone.append(record)
+        by_class.setdefault(class_key(row["class"]), []).append(record)
+
+    def search(tokens, pool):
+        exact = [r for r in pool if r[0] == tokens]
+        if exact:
+            return exact, True
+        return [r for r in pool if is_subsequence(tokens, r[0])], False
+
+    results = []
+    for entry in entries:
+        original = str(entry.get("name", "")).strip()
+        cls = str(entry.get("class", "")).strip()
+        tokens = name_key(original).split()
+        item = {"name": original, "class": cls, "original": original,
+                "status": "notfound", "choices": []}
+        if not tokens:
+            results.append(item)
+            continue
+
+        pool = by_class.get(class_key(cls), []) if cls else []
+        found, was_exact = search(tokens, pool) if pool else ([], False)
+        scope = "class"
+        if not found:
+            found, was_exact = search(tokens, everyone)
+            scope = "all"
+
+        if len(found) == 1:
+            matched_tokens, full, full_cls = found[0]
+            item["name"] = full
+            if not cls:
+                item["class"] = full_cls
+            if was_exact or matched_tokens == tokens:
+                item["status"] = "exact"
+            elif scope == "class":
+                item["status"] = "expanded"
+            else:
+                item["status"] = "expanded_noclass"
+                item["matched_class"] = full_cls
+        elif len(found) > 1:
+            item["status"] = "ambiguous"
+            item["choices"] = [f"{full} ({c})" for _, full, c in found[:6]]
+        results.append(item)
+    return results
 
 
 def match_students(roster, grades):
@@ -637,6 +710,45 @@ def read_roster(file, label):
     if data.empty:
         raise ValueError(" | ".join(errors) or f"لم يُعثر على عمود أسماء في {label}.")
     return data, [f"{label}: {e}" for e in errors], [f"{label} — {n}" for n in notes]
+
+
+@app.route("/expand_names", methods=["POST"])
+def expand_names_route():
+    """
+    استكمال أسماء الطالبات من كشف الطالبات، لاستخدامها في الشهادات.
+
+    يُرفع كشف الطالبات، وتُرسل معه قائمة الأسماء الحالية بصيغة JSON في الحقل
+    names. يُرجَع لكل اسم صيغته الكاملة إن وُجد مرشح واحد، وإلا يُترك كما هو
+    مع بيان سبب التعذّر.
+    """
+    try:
+        roster, errors, notes = read_roster(request.files.get("roster"), "كشف الطالبات")
+    except ValueError as exc:
+        return jsonify(error=str(exc)), 400
+    except (AttributeError, TypeError):
+        return jsonify(error="يجب رفع كشف الطالبات."), 400
+
+    try:
+        entries = json.loads(request.form.get("names", "[]"))
+        if not isinstance(entries, list):
+            raise ValueError
+    except (ValueError, TypeError):
+        return jsonify(error="قائمة الأسماء غير صالحة."), 400
+    if not entries:
+        return jsonify(error="لا توجد أسماء لاستكمالها."), 400
+
+    results = expand_names(entries, roster)
+    counts = {}
+    for r in results:
+        counts[r["status"]] = counts.get(r["status"], 0) + 1
+
+    return jsonify({
+        "students": results,
+        "counts": counts,
+        "roster_size": int(len(roster)),
+        "warnings": errors,
+        "detection": notes,
+    })
 
 
 @app.route("/absent", methods=["POST"])

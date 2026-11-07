@@ -565,11 +565,20 @@
       <p class="lead">تُلصق الأسماء مباشرة (اسم في كل سطر)، أو يُرفع ملف Excel ويستخرج النظام الأسماء منه.
         لإضافة الفصل يُكتب بعد الاسم بفاصلة: نورة محمد، ٦/ج</p>
       <textarea id="tk_names" rows="7" placeholder="نورة محمد&#10;سارة فهد، ٦/أ&#10;ريم خالد"></textarea>
-      <div class="actions">
-        <div class="drop" id="tk_drop" style="flex:1">
+      <div class="worksplit" style="grid-template-columns:1fr 1fr;margin-top:14px">
+        <div class="drop" id="tk_drop">
           <input type="file" id="tk_file" accept=".xlsx,.xls,.csv">
-          <div>أو ارفعي ملف Excel يحتوي عمود أسماء</div>
+          <div>ملف الأسماء
+            <span class="hint">Excel فيه عمود أسماء — بديل عن الكتابة أعلاه</span>
+          </div>
           <div class="file" id="tk_fileName"></div>
+        </div>
+        <div class="drop" id="tk_rosterDrop">
+          <input type="file" id="tk_roster" accept=".xlsx,.xls,.csv">
+          <div>كشف الطالبات <span style="font-weight:400">(اختياري)</span>
+            <span class="hint">لاستكمال الاسم الثنائي إلى الثلاثي حسب الفصل</span>
+          </div>
+          <div class="file" id="tk_rosterName"></div>
         </div>
       </div>
       <div class="actions">
@@ -578,6 +587,7 @@
         <span class="note" id="tk_status"></span>
       </div>
       <div class="error" id="tk_error"></div>
+      <div class="detect hidden" id="tk_expand"></div>
     </section>
 
     <section class="panel hidden" id="tk_previewPanel">
@@ -1218,23 +1228,70 @@ tkFile.onchange = () => $('tk_fileName').textContent = tkFile.files[0]?.name || 
 ['dragleave','drop'].forEach(e => tkDrop.addEventListener(e, ev => {ev.preventDefault(); tkDrop.classList.remove('over')}));
 tkDrop.addEventListener('drop', ev => { tkFile.files = ev.dataTransfer.files; tkFile.onchange(); });
 
+const tkRosterDrop = $('tk_rosterDrop'), tkRoster = $('tk_roster');
+tkRosterDrop.onclick = () => tkRoster.click();
+tkRoster.onchange = () => $('tk_rosterName').textContent = tkRoster.files[0]?.name || '';
+['dragenter','dragover'].forEach(e => tkRosterDrop.addEventListener(e, ev => {ev.preventDefault(); tkRosterDrop.classList.add('over')}));
+['dragleave','drop'].forEach(e => tkRosterDrop.addEventListener(e, ev => {ev.preventDefault(); tkRosterDrop.classList.remove('over')}));
+tkRosterDrop.addEventListener('drop', ev => { tkRoster.files = ev.dataTransfer.files; tkRoster.onchange(); });
+
+/* استكمال الأسماء المختصرة من كشف الطالبات قبل إنشاء الشهادات */
+async function tkExpand(){
+  if (!tkRoster.files[0]) {
+    $('tk_expand').classList.add('hidden');
+    $('tk_status').textContent = '';
+    return;
+  }
+  $('tk_status').textContent = 'جارٍ استكمال الأسماء من الكشف…';
+  try {
+    const fd = new FormData();
+    fd.append('roster', tkRoster.files[0]);
+    fd.append('names', JSON.stringify(TK_LIST.map(e => ({name: e.name, class: e.class || ''}))));
+    const res = await fetch('/expand_names', {method:'POST', body: fd});
+    const json = await res.json();
+    if (!res.ok) { tkError(json.error || 'تعذّر استكمال الأسماء.'); return; }
+
+    TK_LIST = json.students.map(s => ({name: s.name, class: s.class}));
+    $('tk_names').value = TK_LIST.map(e => e.class ? `${e.name}، ${e.class}` : e.name).join('\n');
+
+    const c = json.counts || {};
+    const lines = [];
+    const done = (c.expanded || 0) + (c.expanded_noclass || 0);
+    if (done) lines.push(`اكتمل ${done} اسمًا من الكشف.`);
+    if (c.exact) lines.push(`${c.exact} اسمًا كان كاملًا أصلًا.`);
+    if (c.expanded_noclass) lines.push(`${c.expanded_noclass} منها لم تُطابَق داخل فصلها فأُخذت من الكشف كله — راجعيها.`);
+    const amb = json.students.filter(s => s.status === 'ambiguous');
+    if (amb.length) lines.push('أسماء لها أكثر من مطابقة فتُركت كما هي:\n  '
+      + amb.map(s => `${s.original} ← ${s.choices.join(' / ')}`).join('\n  '));
+    const miss = json.students.filter(s => s.status === 'notfound');
+    if (miss.length) lines.push('غير موجودة في الكشف: ' + miss.map(s => s.original).join('، '));
+
+    $('tk_expand').textContent = lines.join('\n');
+    $('tk_expand').classList.toggle('hidden', !lines.length);
+  } catch (e) { tkError('تعذّر الاتصال بالخادم.'); }
+  finally { $('tk_status').textContent = ''; }
+}
+
 $('tk_build').onclick = async () => {
   tkError('');
   const typed = tkParseNames($('tk_names').value);
-  if (typed.length) { TK_LIST = typed; $('tk_status').textContent = ''; return tkRender(); }
-  if (!tkFile.files[0]) return tkError('اكتبي الأسماء في المربع أو ارفعي ملف Excel.');
-  $('tk_status').textContent = 'جارٍ قراءة الملف…';
-  try {
-    const fd = new FormData(); fd.append('file', tkFile.files[0]);
-    const res = await fetch('/names', {method:'POST', body: fd});
-    const json = await res.json();
-    if (!res.ok) return tkError(json.error || 'تعذّرت قراءة الملف.');
-    TK_LIST = json.students;
-    $('tk_names').value = TK_LIST.map(e => e.class ? `${e.name}، ${e.class}` : e.name).join('\n');
-    $('tk_status').textContent = (json.detection || []).join(' | ');
-    tkRender();
-  } catch (e) { tkError('تعذّر الاتصال بالخادم.'); }
-  finally { if (!TK_LIST.length) $('tk_status').textContent = ''; }
+  if (typed.length) {
+    TK_LIST = typed;
+  } else {
+    if (!tkFile.files[0]) return tkError('اكتبي الأسماء في المربع أو ارفعي ملف Excel.');
+    $('tk_status').textContent = 'جارٍ قراءة الملف…';
+    try {
+      const fd = new FormData(); fd.append('file', tkFile.files[0]);
+      const res = await fetch('/names', {method:'POST', body: fd});
+      const json = await res.json();
+      if (!res.ok) { $('tk_status').textContent = ''; return tkError(json.error || 'تعذّرت قراءة الملف.'); }
+      TK_LIST = json.students;
+      $('tk_names').value = TK_LIST.map(e => e.class ? `${e.name}، ${e.class}` : e.name).join('\n');
+    } catch (e) { $('tk_status').textContent = ''; return tkError('تعذّر الاتصال بالخادم.'); }
+  }
+  await tkExpand();
+  if (!TK_LIST.length) return tkError('لا توجد أسماء.');
+  tkRender();
 };
 ['tk_theme','tk_decor','tk_title','tk_body','tk_program','tk_showClass'].forEach(id =>
   $(id).addEventListener('input', () => { if (TK_LIST.length) tkRender(); }));
