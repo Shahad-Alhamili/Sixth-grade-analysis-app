@@ -254,6 +254,26 @@
   .cert[data-theme="national"] .org,.cert[data-theme="national"] .natmarks,
   .cert[data-theme="national"] .rule,.cert[data-theme="national"] .enddiv{display:none}
   .certbg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
+  /* ثيم إسلامي: قالب مزخرف بإطار مقوّس فارغ. قيست المساحة الخالية في الصورة
+     فتُوضع النصوص داخلها بعيدًا عن الرسمة والمصحف أسفل الجانبين. */
+  .cert[data-theme="islamic"]{padding:0;--c1:#8A5A72;--c2:#C98BA6;--c3:#C2A15C;
+                              --pink:#B4708E;--soft:#F7E8EF;--cream:#FBF6EF}
+  .cert[data-theme="islamic"] .band-out,.cert[data-theme="islamic"] .band-fill,
+  .cert[data-theme="islamic"] .band-in,.cert[data-theme="islamic"] .band-dash,
+  .cert[data-theme="islamic"] .corners,.cert[data-theme="islamic"] .deco,
+  .cert[data-theme="islamic"] .org,.cert[data-theme="islamic"] .natmarks{display:none}
+  .cert[data-theme="islamic"] .inner{inset:0;padding:0;display:block}
+  .cert[data-theme="islamic"] .title{position:absolute;top:22.5%;left:0;right:0;margin:0;
+                                     font-size:2.9rem}
+  .cert[data-theme="islamic"] .rule{position:absolute;top:32.5%;left:50%;transform:translateX(-50%)}
+  .cert[data-theme="islamic"] .mid{position:absolute;top:37%;left:14%;right:14%;bottom:20%}
+  .cert[data-theme="islamic"] .body{font-size:1.14rem;max-width:none}
+  .cert[data-theme="islamic"] .body p{margin-bottom:4mm}
+  .cert[data-theme="islamic"] .name{font-size:1.75rem;border-bottom-color:var(--c2)}
+  .cert[data-theme="islamic"] .teacher{margin-top:5mm!important}
+  .cert[data-theme="islamic"] .enddiv{display:none}
+  .cert[data-theme="islamic"] .sig{position:absolute;left:20%;right:20%;bottom:12.5%;margin:0;
+                                   font-size:.98rem}
   /* ثيم نافس: قالب جاهز يحمل كل النص الثابت، وتُعبَّأ فوقه أربعة حقول فقط */
   .cert[data-theme="nafs"]{padding:0;--c1:#453A8F;--c2:#7D77B0;--cream:#FFFFFF}
   .cert[data-theme="nafs"] .band-out,.cert[data-theme="nafs"] .band-fill,
@@ -544,6 +564,7 @@
         </div>
         <div><label>ثيم الشهادة</label>
           <select id="tk_theme">
+            <option value="islamic">إسلامي — قرآن ورمضان</option>
             <option value="purple">بنفسجي</option>
             <option value="rose">وردي</option>
             <option value="teal">تركوازي</option>
@@ -999,11 +1020,15 @@ function nafsCertHTML(s, m){
 }
 const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 
+/* قوالب جاهزة تُستخدم كخلفية كاملة بدل الزخارف المرسومة */
+const CERT_BG = {national: '/static/cert-national.jpg', islamic: '/static/cert-islamic.jpg'};
+
 /* الإطار المشترك لكل الشهادات: الزخارف والترويسة والعنوان والتذييل */
 function certFrame(theme, m, titleText, bodyHTML, decorStyle = 'study', bookTitles = null){
   const national = theme === 'national';
+  const bg = CERT_BG[theme];
   return `<div class="cert" data-theme="${theme}">
-    ${national ? '<img class="certbg" src="/static/cert-national.jpg" alt="">' : ''}
+    ${bg ? `<img class="certbg" src="${bg}" alt="">` : ''}
     <div class="band-out"></div><div class="band-fill"></div>
     <div class="band-in"></div><div class="band-dash"></div>
     ${certCorners()}
@@ -1175,6 +1200,12 @@ const THANKS_PRESETS = [
   {id:'parent', label:'شكر لولية الأمر', title:'شكر وتقدير',
    program:'متابعة أبنائكم',
    body:'تتقدم إدارة {المدرسة} بالشكر الجزيل لولية أمر الطالبة\n{الاسم}\nعلى تعاونها المثمر في {البرنامج}\nفالشراكة بين البيت والمدرسة سرّ نجاح أبنائنا.'},
+  {id:'quran', label:'حفظ أو تلاوة القرآن الكريم', title:'شهادة إتمام',
+   program:'جزء عمّ',
+   body:'تشهد إدارة {المدرسة} بأن الطالبة\n{الاسم}\nقد أتمّت بتوفيق الله حفظ {البرنامج}\nجعله الله شفيعًا لها، ورزقها العمل به.'},
+  {id:'ramadan', label:'مسابقة أو برنامج رمضاني', title:'شهادة تميز',
+   program:'المسابقة الرمضانية',
+   body:'تتقدم إدارة {المدرسة} بالشكر والتقدير للطالبة\n{الاسم}\nلتميزها في {البرنامج}\nتقبّل الله صيامها وقيامها، وبارك في جهدها.'},
   {id:'custom', label:'نص مخصص', title:'شكر وتقدير', program:'',
    body:'تتقدم إدارة {المدرسة} بالشكر والتقدير للطالبة\n{الاسم}\n'},
 ];
