@@ -434,6 +434,7 @@ IMAGE_STEMS = {
     "logo": ("logo",),                              # شعار وزارة التعليم
     "emblem": ("emblem", "شعار", "نخلة"),            # شعار المملكة: النخلة والسيفان
     "flag": ("flag", "علم", "saudi-flag", "saudiflag"),  # علم المملكة
+    "stamp": ("stamp", "ختم", "طبعة"),               # ختم المعلمة بجانب اسمها
 }
 
 
@@ -487,6 +488,13 @@ def strip_background(path):
         img = Image.open(path).convert("RGBA")
     except Exception:
         return None
+
+    # صورة تحمل شفافية فعلية تُقدَّم كما هي؛ معالجتها قد تقضم حوافها
+    alpha = img.getchannel("A")
+    if alpha.getextrema()[0] < 250:
+        buf = io.BytesIO()
+        img.save(buf, format="PNG", optimize=True)
+        return buf.getvalue()
 
     w, h = img.size
     if w * h > 4_000_000:  # صورة كبيرة جدًا للمعالجة البكسلية
@@ -543,10 +551,12 @@ def strip_background(path):
 @app.route("/logo")
 @app.route("/emblem")
 @app.route("/flag")
+@app.route("/stamp")
 def logo():
     """
     إرجاع صورة بخلفية شفافة حسب المسار:
       /logo   شعار وزارة التعليم، يظهر في ترويسة التقرير والشهادات
+      /stamp  ختم المعلمة، يظهر بجانب اسمها في جميع الشهادات
       /emblem شعار المملكة (النخلة والسيفان)، يظهر في شهادات ثيم اليوم الوطني
       /flag   علم المملكة، يظهر بجوار الشعار في ثيم اليوم الوطني
     المعامل raw=1 يُرجع الملف الأصلي دون معالجة.

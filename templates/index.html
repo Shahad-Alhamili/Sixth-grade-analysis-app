@@ -339,7 +339,12 @@
               border-bottom:2px dotted var(--c2);padding:0 6mm 1mm;margin:0 2mm}
   .cert .cls{color:var(--c2);font-weight:600;font-size:.95rem}
   .cert .pct{color:var(--c1);font-weight:700}
-  .cert .teacher{color:var(--pink);font-weight:600;font-size:1.1rem;margin:9mm 0 0!important}
+  .cert .teacher{color:var(--pink);font-weight:600;font-size:1.1rem;margin:9mm 0 0!important;
+                 display:flex;align-items:center;justify-content:center;gap:4mm}
+  /* ختم المعلمة: صورة شفافة تُقدَّم عبر /stamp، وتختفي تلقائيًا إن لم تُرفع */
+  .cert .stamp{height:23mm;width:auto;flex:none;transform:rotate(-7deg)}
+  .cert[data-theme="nafs"] .nafs-stamp{position:absolute;left:83.5%;bottom:15.5%;height:21mm;
+                                       width:auto;transform:rotate(-8deg);z-index:3}
   .cert .sig{margin-top:6mm;display:flex;justify-content:space-between;align-items:flex-end;
              font-weight:700;color:var(--c1);font-size:1.04rem;padding:0 6mm 2mm}
   .cert .sig .date{color:var(--c2);font-weight:600}
@@ -1015,10 +1020,15 @@ function nafsCertHTML(s, m){
       <div class="nafs-cover"></div>
       <div class="nafs-f nafs-teacher">${esc(m.teacher || '')}</div>
       <div class="nafs-f nafs-tlabel">معلمة المادة</div>
+      ${stampImg('nafs-stamp')}
     </div>
   </div>`;
 }
 const arabicDigits = t => String(t).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+/* ختم المعلمة؛ يُحذف العنصر تلقائيًا إذا لم يوجد ملف ختم */
+const stampImg = (cls = 'stamp') =>
+  `<img class="${cls}" src="/stamp" alt="" onerror="this.remove()">`;
 
 /* قوالب جاهزة تُستخدم كخلفية كاملة بدل الزخارف المرسومة */
 const CERT_BG = {national: '/static/cert-national.jpg', islamic: '/static/cert-islamic.jpg'};
@@ -1070,7 +1080,7 @@ function certHTML(s, m){
     <p>وأسرتها الكريمة على تفوقها في ${esc(examPhrase)}${pctPhrase}</p>
     ${national ? '<p>سائلين المولى أن يوفقها لبناء الوطن وخدمته.</p>' : ''}
     <p>مع تمنياتي لها بالاستمرار في طريق التفوق والنجاح.</p>
-    <p class="teacher">مع حبي وتقديري لكم/ معلمتكم ${esc(m.teacher || '................')}</p>`;
+    <p class="teacher">مع حبي وتقديري لكم/ معلمتكم ${esc(m.teacher || '................')}${stampImg()}</p>`;
   const subjectBook = m.subject === '—' ? 'الاجتهاد' : m.subject;
   return certFrame(theme, m, 'شكر وتقدير', body, 'study', ['النجاح', 'التميز', subjectBook]);
 }
@@ -1238,7 +1248,7 @@ function tkBodyHTML(entry, m){
       .replace(/\{البرنامج\}/g, esc(program))
       .replace(/\{المدرسة\}/g, esc(arabicDigits(m.school || 'المدرسة')));
     return `<p class="${isName ? 'nameline' : ''}">${html}</p>`;
-  }).join('') + (m.teacher ? `<p class="teacher">مع حبي وتقديري لكم/ معلمتكم ${esc(m.teacher)}</p>` : '');
+  }).join('') + (m.teacher ? `<p class="teacher">مع حبي وتقديري لكم/ معلمتكم ${esc(m.teacher)}${stampImg()}</p>` : '');
 }
 function tkRender(){
   const m = meta(), theme = $('tk_theme').value;
