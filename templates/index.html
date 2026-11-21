@@ -269,19 +269,18 @@
   /* ===== أوسمة الانضباط: القوالب الجاهزة =====
      صورة القالب تُعرض كاملة بنسبتها الأصلية، والنص يوضع في المساحة الصافية داخلها،
      ويبقى سطر التوقيعات أسفل الصفحة. */
-  .cert[data-theme="medal"]{padding:6mm 12mm 8mm;background:#fff;display:flex;flex-direction:column;
-                            font-family:"Saudi","El Messiri",sans-serif}
+  .cert[data-theme="medal"]{padding:0;background:#fff;display:flex;align-items:center;
+                            justify-content:center;font-family:"Saudi","El Messiri",sans-serif}
   .cert[data-theme="medal"][data-tier="gold"]{--m1:#B98E1E;--m3:#7E6210;--ar:1.7382}
   .cert[data-theme="medal"][data-tier="silver"]{--m1:#7C8894;--m3:#4E5861;--ar:1.6206}
   .cert[data-theme="medal"][data-tier="bronze"]{--m1:#A4663A;--m3:#6B3F26;--ar:1.6083}
   .cert[data-theme="medal"] .band-out,.cert[data-theme="medal"] .band-fill,
   .cert[data-theme="medal"] .band-in,.cert[data-theme="medal"] .band-dash,
   .cert[data-theme="medal"] .corners,.cert[data-theme="medal"] .deco{display:none}
-  /* عرض البطاقة يُحدَّد بحيث لا يتجاوز ارتفاعها المساحة المتاحة فوق سطر التوقيعات */
-  .mdlp-card{position:relative;width:min(100%, calc(166mm * var(--ar)));margin:0 auto;
-             aspect-ratio:var(--ar)}
+  /* البطاقة بأقصى مقاس يسع الصفحة مع هامش طباعة، وكل المحتوى داخلها */
+  .mdlp-card{position:relative;width:min(285mm, calc(196mm * var(--ar)));aspect-ratio:var(--ar)}
   .mdlp-card>img{width:100%;height:100%;display:block}
-  .mdlp-text{position:absolute;top:20%;left:30%;right:16.5%;bottom:19.5%;display:flex;
+  .mdlp-text{position:absolute;top:14%;left:31%;right:18%;bottom:33%;display:flex;
              flex-direction:column;align-items:center;justify-content:center;text-align:center}
   .mdlp-org{font-size:.86rem;font-weight:600;color:var(--m1);line-height:1.75}
   .mdlp-title{font-family:Amiri,"Noto Naskh Arabic",serif;font-weight:700;font-size:2.65rem;
@@ -293,13 +292,14 @@
                    color:var(--m3);border-bottom:1.6px dotted var(--m1);padding:0 6mm 1mm;
                    display:inline-block}
   .mdlp-body .cls{font-size:.9rem;color:var(--m1);font-weight:600;margin-inline-start:-3mm}
-  .mdlp-foot{margin-top:auto;padding-top:4mm;display:flex;align-items:flex-end;
-             justify-content:space-between;gap:6mm;font-weight:700;color:var(--m3);font-size:1rem}
-  .mdlp-foot span{display:block;font-size:.8rem;font-weight:500;color:#7A736C;margin-top:1mm}
-  .mdlp-foot .teach{display:flex;align-items:center;gap:3mm}
-  .mdlp-foot .stamp{height:18mm;width:auto;transform:rotate(-7deg)}
-  .mdlp-foot .brand{text-align:center;font-weight:500;font-size:.8rem;color:#7A736C;line-height:1.6}
-  .mdlp-foot .brand img{height:12mm;display:block;margin:0 auto 1mm;mix-blend-mode:multiply}
+  /* سطر التوقيعات داخل البطاقة، في الشريط الصافي أسفل النص */
+  .mdlp-sig{position:absolute;left:12%;right:19%;top:68.5%;height:14%;display:flex;
+            align-items:center;justify-content:space-between;gap:4mm;
+            font-weight:700;color:var(--m3);font-size:.95rem}
+  .mdlp-sig span{display:block;font-size:.78rem;font-weight:500;color:#7A736C;margin-top:.8mm}
+  .mdlp-sig .teach{display:flex;align-items:center;gap:2mm}
+  .mdlp-sig .stamp{height:13mm;width:auto;flex:none;transform:rotate(-7deg)}
+  .mdlp-sig .brand img{height:9mm;display:block;mix-blend-mode:multiply}
   .mdl-in{position:absolute;inset:14mm 18mm 12mm;display:flex;flex-direction:column;
           align-items:center;text-align:center;z-index:2}
   .mdl-head{position:absolute;top:0;right:0;left:0;display:flex;align-items:flex-start;
@@ -1203,14 +1203,12 @@ function medalPicHTML(entry, m, title){
         <div class="mdlp-title">${esc(title)} ${esc(t.adj)}</div>
         <div class="mdlp-body">${body}</div>
       </div>
-    </div>
-    <div class="mdlp-foot">
-      <div class="teach">معلمة المادة/ ${esc(m.teacher || '................')}${stampImg()}</div>
-      <div class="brand">
-        <img src="/logo" alt="وزارة التعليم" onerror="this.remove()">
+      <div class="mdlp-sig">
+        <div class="teach">معلمة المادة/ ${esc(m.teacher || '................')}${stampImg()}</div>
+        <div class="brand"><img src="/logo" alt="وزارة التعليم" onerror="this.remove()"></div>
+        <div>مديرة المدرسة/ ${esc(m.principal || '................')}
+          ${m.date ? `<span>التاريخ: ${esc(m.date)}</span>` : ''}</div>
       </div>
-      <div>مديرة المدرسة/ ${esc(m.principal || '................')}
-        ${m.date ? `<span>التاريخ: ${esc(m.date)}</span>` : ''}</div>
     </div>
   </div>`;
 }
