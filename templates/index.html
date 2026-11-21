@@ -254,6 +254,41 @@
   .cert[data-theme="national"] .org,.cert[data-theme="national"] .natmarks,
   .cert[data-theme="national"] .rule,.cert[data-theme="national"] .enddiv{display:none}
   .certbg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
+  /* ===== وسام الانضباط =====
+     شهادة مرسومة بالكامل، لونها المعدني يتبع درجة الوسام: ذهبي، فضي، برونزي. */
+  .cert[data-theme="medal"]{padding:0;background:#FFFDF9;font-family:"Saudi","El Messiri",sans-serif}
+  .cert[data-theme="medal"][data-tier="gold"]{--m1:#C9A227;--m2:#F2DF96;--m3:#8A6B12;--msoft:#FCF6E4}
+  .cert[data-theme="medal"][data-tier="silver"]{--m1:#8D99A3;--m2:#DFE6EB;--m3:#58626A;--msoft:#F2F5F7}
+  .cert[data-theme="medal"][data-tier="bronze"]{--m1:#AA6A3C;--m2:#E7B288;--m3:#70432A;--msoft:#F9EEE5}
+  .cert[data-theme="medal"] .band-out,.cert[data-theme="medal"] .band-fill,
+  .cert[data-theme="medal"] .band-in,.cert[data-theme="medal"] .band-dash,
+  .cert[data-theme="medal"] .corners,.cert[data-theme="medal"] .deco{display:none}
+  .mdl-frame{position:absolute;inset:6mm;border:1.1mm solid var(--m1);border-radius:4mm}
+  .mdl-frame::before{content:"";position:absolute;inset:2.2mm;border:.35mm solid var(--m1);
+                     border-radius:2.5mm;opacity:.55}
+  .mdl-in{position:absolute;inset:14mm 18mm 12mm;display:flex;flex-direction:column;
+          align-items:center;text-align:center;z-index:2}
+  .mdl-head{position:absolute;top:0;right:0;left:0;display:flex;align-items:flex-start;
+            justify-content:space-between;font-size:.9rem;font-weight:600;color:var(--m3)}
+  .mdl-head img{height:14mm;mix-blend-mode:multiply}
+  .mdl-head .school{text-align:left;line-height:1.7}
+  .mdl-medal{margin-top:15mm;width:38mm;height:46mm}
+  .mdl-title{font-family:"Aref Ruqaa",Amiri,serif;font-size:3rem;color:var(--m3);
+             margin:2mm 0 0;line-height:1.2}
+  .mdl-tier{margin:3mm 0 0;display:inline-block;background:var(--m1);color:#fff;font-weight:700;
+            font-size:1.08rem;letter-spacing:.14em;padding:2mm 11mm;border-radius:99px}
+  .mdl-body{margin-top:9mm;font-size:1.16rem;color:#2B2724;line-height:2;max-width:186mm}
+  .mdl-body p{margin:0}
+  .mdl-body .nameline{margin:2mm 0}
+  .mdl-body .name{font-family:"Aref Ruqaa",Amiri,serif;font-size:2rem;color:var(--m3);
+                  font-weight:700;border-bottom:2px dotted var(--m1);padding:0 7mm 1mm;
+                  display:inline-block;margin:1mm 0}
+  .mdl-body .cls{font-size:.95rem;color:var(--m1);font-weight:600;margin-inline-start:-4mm}
+  .mdl-sig{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;
+           justify-content:space-between;font-weight:700;color:var(--m3);font-size:1.02rem}
+  .mdl-sig span{display:block;font-size:.82rem;font-weight:500;color:#7A736C;margin-top:1mm}
+  .mdl-sig .teach{display:flex;align-items:center;gap:3mm}
+  .mdl-sig .stamp{height:21mm;width:auto;transform:rotate(-7deg)}
   /* ثيم إسلامي: قالب مزخرف بإطار مقوّس فارغ. قيست المساحة الخالية في الصورة
      فتُوضع النصوص داخلها بعيدًا عن الرسمة والمصحف أسفل الجانبين. */
   .cert[data-theme="islamic"]{padding:0;--c1:#8A5A72;--c2:#C98BA6;--c3:#C2A15C;
@@ -556,7 +591,7 @@
     <section class="panel">
       <h2><span class="op">١</span><span>نوع الشهادة ونصها</span></h2>
       <p class="lead">شهادات لا تعتمد على درجات: تُختار مناسبة جاهزة ويُعدَّل نصها، ثم تُنشأ شهادة لكل طالبة.
-        الرموز <b>{الاسم}</b> و<b>{الفصل}</b> و<b>{البرنامج}</b> و<b>{المدرسة}</b> تُستبدل تلقائيًا.</p>
+        الرموز <b>{الاسم}</b> و<b>{الفصل}</b> و<b>{البرنامج}</b> و<b>{المدرسة}</b> و<b>{الوسام}</b> تُستبدل تلقائيًا.</p>
       <div class="grid">
         <div><label>المناسبة</label><select id="tk_preset"></select></div>
         <div><label>اسم البرنامج / المناسبة</label><input type="text" id="tk_program" placeholder="مثال: برنامج موهبة"></div>
@@ -574,7 +609,17 @@
             <option value="rose">وردي</option>
             <option value="teal">تركوازي</option>
             <option value="national">اليوم الوطني (أخضر وذهبي)</option>
+            <option value="medal">وسام الانضباط (أوسمة معدنية)</option>
           </select>
+        </div>
+        <div><label>درجة الوسام</label>
+          <select id="tk_tier">
+            <option value="gold">ذهبي — انضباط تام</option>
+            <option value="silver">فضي — انضباط جيد</option>
+            <option value="bronze">برونزي — انضباط مقبول</option>
+          </select>
+          <span class="hint">لثيم وسام الانضباط فقط. لدرجة مختلفة لكل طالبة تُكتب بعد الفصل:
+            نورة محمد، ٦/ج، فضي</span>
         </div>
       </div>
       <div style="margin-top:20px">
@@ -589,7 +634,7 @@
     <section class="panel">
       <h2><span class="op">٢</span><span>أسماء الطالبات</span></h2>
       <p class="lead">تُلصق الأسماء مباشرة (اسم في كل سطر)، أو يُرفع ملف Excel ويستخرج النظام الأسماء منه.
-        لإضافة الفصل يُكتب بعد الاسم بفاصلة: نورة محمد، ٦/ج</p>
+        لإضافة الفصل يُكتب بعد الاسم بفاصلة: نورة محمد، ٦/ج — ولدرجة وسام خاصة بطالبة تُضاف بعده: نورة محمد، ٦/ج، فضي</p>
       <textarea id="tk_names" rows="7" placeholder="نورة محمد&#10;سارة فهد، ٦/أ&#10;ريم خالد"></textarea>
       <div class="worksplit" style="grid-template-columns:1fr 1fr;margin-top:14px">
         <div class="drop" id="tk_drop">
@@ -1033,6 +1078,104 @@ const stampImg = (cls = 'stamp') =>
 /* قوالب جاهزة تُستخدم كخلفية كاملة بدل الزخارف المرسومة */
 const CERT_BG = {national: '/static/cert-national.jpg', islamic: '/static/cert-islamic.jpg'};
 
+/* ===== أوسمة الانضباط =====
+   ثلاث درجات معدنية. معرّفات التدرجات تحمل اسم الدرجة حتى لا تتداخل شهادات
+   درجتين مختلفتين في الصفحة نفسها. */
+const MEDAL_TIERS = {
+  gold:   {key:'gold',   word:'ذهبي',    label:'الوسام الذهبي'},
+  silver: {key:'silver', word:'فضي',     label:'الوسام الفضي'},
+  bronze: {key:'bronze', word:'برونزي',  label:'الوسام البرونزي'},
+};
+/* الكلمات التي تُقبل في عمود الدرجة داخل قائمة الأسماء */
+const TIER_WORDS = {
+  'ذهبي':'gold','الذهبي':'gold','ذهب':'gold','ذهبيه':'gold','ذهبية':'gold','gold':'gold',
+  'فضي':'silver','الفضي':'silver','فضه':'silver','فضة':'silver','فضيه':'silver','فضية':'silver','silver':'silver',
+  'برونزي':'bronze','البرونزي':'bronze','برونز':'bronze','برونزيه':'bronze','برونزية':'bronze','bronze':'bronze',
+};
+function tierOf(raw){
+  const k = String(raw || '').trim().replace(/[\u064B-\u0652\u0640]/g, '');
+  return TIER_WORDS[k] || '';
+}
+function medalSVG(tier){
+  const cx = 50, cy = 82;
+  let scallops = '';
+  for (let i = 0; i < 28; i++){
+    const a = i / 28 * Math.PI * 2;
+    scallops += `<circle cx="${(cx + 30 * Math.cos(a)).toFixed(2)}" cy="${(cy + 30 * Math.sin(a)).toFixed(2)}" r="2.7"/>`;
+  }
+  let star = '';
+  for (let i = 0; i < 10; i++){
+    const r = i % 2 ? 4.9 : 11.8, a = -Math.PI / 2 + i * Math.PI / 5;
+    star += `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)} `;
+  }
+  const face = `mface-${tier}`, rib = `mrib-${tier}`;
+  return `<svg class="mdl-medal" viewBox="0 0 100 120" aria-hidden="true">
+    <defs>
+      <linearGradient id="${face}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="var(--m2)"/>
+        <stop offset=".52" stop-color="var(--m1)"/>
+        <stop offset="1" stop-color="var(--m3)"/>
+      </linearGradient>
+      <linearGradient id="${rib}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--m1)"/>
+        <stop offset="1" stop-color="var(--m3)"/>
+      </linearGradient>
+    </defs>
+    <path d="M50 78 L21 11 L37 4 L60 65 Z" fill="url(#${rib})"/>
+    <path d="M50 78 L79 11 L63 4 L40 65 Z" fill="url(#${rib})" opacity=".66"/>
+    <g fill="url(#${face})">${scallops}</g>
+    <circle cx="${cx}" cy="${cy}" r="28.5" fill="url(#${face})"/>
+    <circle cx="${cx}" cy="${cy}" r="22.6" fill="none" stroke="var(--m3)" stroke-width="1.1" opacity=".55"/>
+    <circle cx="${cx}" cy="${cy}" r="19.6" fill="var(--msoft)"/>
+    <polygon points="${star.trim()}" fill="url(#${face})" stroke="var(--m3)" stroke-width=".7"/>
+  </svg>`;
+}
+/* شهادة الوسام: الاسم يتغير لكل طالبة، واسم المعلمة والمدرسة يأتيان من الإعدادات */
+/* نصوص الدرجات الثلاث كما وردت في المناسبات الجاهزة */
+function medalBody(tier){
+  const fallback = $('tk_body').value;
+  const bodies = ['medal_gold','medal_silver','medal_bronze']
+    .map(id => (THANKS_PRESETS.find(pr => pr.id === id) || {}).body);
+  // إن كانت الصياغة إحدى الصياغات الجاهزة دون تعديل، يأخذ كل وسام نص درجته.
+  if (!bodies.includes(fallback.trim()) && !bodies.includes(fallback)) return fallback;
+  const byTier = {gold: bodies[0], silver: bodies[1], bronze: bodies[2]};
+  return byTier[tier] || fallback;
+}
+function medalCertHTML(entry, m, title){
+  const t = MEDAL_TIERS[entry.tier || $('tk_tier').value] || MEDAL_TIERS.gold;
+  const program = $('tk_program').value.trim() || $('tk_program').placeholder.replace('مثال: ', '');
+  const cls = $('tk_showClass').checked && entry.class ? `<span class="cls">(${esc(entry.class)})</span>` : '';
+  const nameHTML = `<span class="name">${esc(entry.name)}</span>${cls}`;
+  const body = medalBody(t.key).split(/\n+/).map(l => l.trim()).filter(Boolean).map(line => {
+    const isName = line.includes('{الاسم}');
+    const html = esc(line)
+      .replace('{الاسم}', nameHTML)
+      .replace(/\{الفصل\}/g, esc(entry.class || ''))
+      .replace(/\{البرنامج\}/g, esc(program))
+      .replace(/\{الوسام\}/g, esc(t.label))
+      .replace(/\{المدرسة\}/g, esc(arabicDigits(m.school || 'المدرسة')));
+    return `<p class="${isName ? 'nameline' : ''}">${html}</p>`;
+  }).join('');
+  return `<div class="cert" data-theme="medal" data-tier="${t.key}">
+    <div class="mdl-frame"></div>
+    <div class="mdl-in">
+      <div class="mdl-head">
+        <img src="/logo" alt="وزارة التعليم" onerror="this.remove()">
+        <div class="school">${esc(arabicDigits(m.admin))}<br>${esc(arabicDigits(m.school || ''))}</div>
+      </div>
+      ${medalSVG(t.key)}
+      <div class="mdl-title">${esc(title)}</div>
+      <div class="mdl-tier">${esc(t.label)}</div>
+      <div class="mdl-body">${body}</div>
+      <div class="mdl-sig">
+        <div class="teach">معلمة المادة/ ${esc(m.teacher || '................')}${stampImg()}</div>
+        <div>مديرة المدرسة/ ${esc(m.principal || '................')}
+          ${m.date ? `<span>التاريخ: ${esc(m.date)}</span>` : ''}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
 /* الإطار المشترك لكل الشهادات: الزخارف والترويسة والعنوان والتذييل */
 function certFrame(theme, m, titleText, bodyHTML, decorStyle = 'study', bookTitles = null){
   const national = theme === 'national';
@@ -1216,6 +1359,15 @@ const THANKS_PRESETS = [
   {id:'ramadan', label:'مسابقة أو برنامج رمضاني', title:'شهادة تميز',
    program:'المسابقة الرمضانية',
    body:'تتقدم إدارة {المدرسة} بالشكر والتقدير للطالبة\n{الاسم}\nلتميزها في {البرنامج}\nتقبّل الله صيامها وقيامها، وبارك في جهدها.'},
+  {id:'medal_gold', label:'وسام انضباط — ذهبي', title:'وسام الانضباط',
+   program:'الفصل الدراسي الأول', theme:'medal', tier:'gold',
+   body:'تمنح إدارة {المدرسة} هذا الوسام للطالبة\n{الاسم}\nتقديرًا لالتزامها التام بالحضور والانضباط طوال {البرنامج}\nفكانت مثالًا يُحتذى بين زميلاتها.'},
+  {id:'medal_silver', label:'وسام انضباط — فضي', title:'وسام الانضباط',
+   program:'الفصل الدراسي الأول', theme:'medal', tier:'silver',
+   body:'تمنح إدارة {المدرسة} هذا الوسام للطالبة\n{الاسم}\nتقديرًا لحرصها على الحضور والانضباط خلال {البرنامج}\nوخطوةٌ واحدة تفصلها عن القمة.'},
+  {id:'medal_bronze', label:'وسام انضباط — برونزي', title:'وسام الانضباط',
+   program:'الفصل الدراسي الأول', theme:'medal', tier:'bronze',
+   body:'تمنح إدارة {المدرسة} هذا الوسام للطالبة\n{الاسم}\nتشجيعًا لما أبدته من تحسن في الحضور والانضباط خلال {البرنامج}\nونتطلع منها إلى ما هو أجمل.'},
   {id:'custom', label:'نص مخصص', title:'شكر وتقدير', program:'',
    body:'تتقدم إدارة {المدرسة} بالشكر والتقدير للطالبة\n{الاسم}\n'},
 ];
@@ -1226,14 +1378,34 @@ function tkFillPreset(){
   $('tk_title').value = preset.title;
   $('tk_body').value = preset.body;
   if (preset.program) $('tk_program').placeholder = 'مثال: ' + preset.program;
+  if (preset.theme) $('tk_theme').value = preset.theme;
+  if (preset.tier) $('tk_tier').value = preset.tier;
+  tkSyncTier();
   if (TK_LIST.length) tkRender();
 }
 function tkParseNames(text){
-  // كل سطر اسم، ويمكن إتباعه بفاصلة أو شرطة أو جدولة ثم اسم الفصل
+  // كل سطر اسم، ويمكن إتباعه بفاصلة أو شرطة أو جدولة ثم اسم الفصل ثم درجة الوسام
   return text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
     const parts = line.split(/\s*[,،\t]\s*|\s+[-–—]\s+/);
-    return {name: parts[0].trim(), class: (parts[1] || '').trim()};
+    const entry = {name: parts[0].trim(), class: (parts[1] || '').trim()};
+    // الدرجة قد تُكتب مكان الفصل حين لا يُذكر الفصل
+    const tier = tierOf(parts[2]) || (parts.length === 2 ? tierOf(parts[1]) : '');
+    if (tier) {
+      entry.tier = tier;
+      if (parts.length === 2) entry.class = '';
+    }
+    return entry;
   }).filter(e => e.name);
+}
+/* سطر القائمة كما يُعاد كتابته في المربع: الاسم، الفصل، الدرجة */
+function tkLine(e){
+  return [e.name, e.class || '', e.tier ? MEDAL_TIERS[e.tier].word : '']
+    .filter(Boolean).join('، ');
+}
+/* قائمة الدرجة تخص ثيم الوسام وحده */
+function tkSyncTier(){
+  const box = $('tk_tier').closest('div');
+  if (box) box.style.display = $('tk_theme').value === 'medal' ? '' : 'none';
 }
 function tkBodyHTML(entry, m){
   const program = $('tk_program').value.trim() || $('tk_program').placeholder.replace('مثال: ', '');
@@ -1254,8 +1426,9 @@ function tkRender(){
   const m = meta(), theme = $('tk_theme').value;
   const decorStyle = $('tk_decor').value;
   const title = $('tk_title').value.trim() || 'شكر وتقدير';
-  $('tk_certs').innerHTML = TK_LIST
-    .map(e => certFrame(theme, m, title, tkBodyHTML(e, m), decorStyle)).join('');
+  $('tk_certs').innerHTML = TK_LIST.map(e => theme === 'medal'
+    ? medalCertHTML(e, m, title)
+    : certFrame(theme, m, title, tkBodyHTML(e, m), decorStyle)).join('');
   $('tk_lead').textContent = `${TK_LIST.length} شهادة — صفحة مستقلة لكل طالبة (A4 عرضي).`;
   $('tk_previewPanel').classList.remove('hidden');
   $('tk_print').classList.remove('hidden');
@@ -1292,8 +1465,12 @@ async function tkExpand(){
     const json = await res.json();
     if (!res.ok) { tkError(json.error || 'تعذّر استكمال الأسماء.'); return; }
 
-    TK_LIST = json.students.map(s => ({name: s.name, class: s.class}));
-    $('tk_names').value = TK_LIST.map(e => e.class ? `${e.name}، ${e.class}` : e.name).join('\n');
+    TK_LIST = json.students.map((s, i) => {
+      const e = {name: s.name, class: s.class};
+      if (TK_LIST[i] && TK_LIST[i].tier) e.tier = TK_LIST[i].tier;
+      return e;
+    });
+    $('tk_names').value = TK_LIST.map(tkLine).join('\n');
 
     const c = json.counts || {};
     const lines = [];
@@ -1327,15 +1504,15 @@ $('tk_build').onclick = async () => {
       const json = await res.json();
       if (!res.ok) { $('tk_status').textContent = ''; return tkError(json.error || 'تعذّرت قراءة الملف.'); }
       TK_LIST = json.students;
-      $('tk_names').value = TK_LIST.map(e => e.class ? `${e.name}، ${e.class}` : e.name).join('\n');
+      $('tk_names').value = TK_LIST.map(tkLine).join('\n');
     } catch (e) { $('tk_status').textContent = ''; return tkError('تعذّر الاتصال بالخادم.'); }
   }
   await tkExpand();
   if (!TK_LIST.length) return tkError('لا توجد أسماء.');
   tkRender();
 };
-['tk_theme','tk_decor','tk_title','tk_body','tk_program','tk_showClass'].forEach(id =>
-  $(id).addEventListener('input', () => { if (TK_LIST.length) tkRender(); }));
+['tk_theme','tk_decor','tk_tier','tk_title','tk_body','tk_program','tk_showClass'].forEach(id =>
+  $(id).addEventListener('input', () => { tkSyncTier(); if (TK_LIST.length) tkRender(); }));
 $('tk_preset').onchange = tkFillPreset;
 $('tk_preset').innerHTML = THANKS_PRESETS.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
 tkFillPreset();
