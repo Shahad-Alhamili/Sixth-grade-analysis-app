@@ -269,18 +269,18 @@
   /* ===== أوسمة الانضباط: القوالب الجاهزة =====
      صورة القالب تُعرض كاملة بنسبتها الأصلية، والنص يوضع في المساحة الصافية داخلها،
      ويبقى سطر التوقيعات أسفل الصفحة. */
-  .cert[data-theme="medal"]{padding:0;background:#fff;display:flex;align-items:center;
-                            justify-content:center;font-family:"Saudi","El Messiri",sans-serif}
-  .cert[data-theme="medal"][data-tier="gold"]{--m1:#B98E1E;--m3:#7E6210;--ar:1.7382}
-  .cert[data-theme="medal"][data-tier="silver"]{--m1:#7C8894;--m3:#4E5861;--ar:1.6206}
-  .cert[data-theme="medal"][data-tier="bronze"]{--m1:#A4663A;--m3:#6B3F26;--ar:1.6083}
+  .cert[data-theme="medal"]{padding:0;background:#fff;height:calc(297mm / var(--ar));
+                            font-family:"Saudi","El Messiri",sans-serif}
+  .cert[data-theme="medal"][data-tier="gold"]{--m1:#B98E1E;--m3:#7E6210;--ar:1.7637}
+  .cert[data-theme="medal"][data-tier="silver"]{--m1:#7C8894;--m3:#4E5861;--ar:1.6426}
+  .cert[data-theme="medal"][data-tier="bronze"]{--m1:#A4663A;--m3:#6B3F26;--ar:1.6317}
   .cert[data-theme="medal"] .band-out,.cert[data-theme="medal"] .band-fill,
   .cert[data-theme="medal"] .band-in,.cert[data-theme="medal"] .band-dash,
   .cert[data-theme="medal"] .corners,.cert[data-theme="medal"] .deco{display:none}
-  /* البطاقة بأقصى مقاس يسع الصفحة مع هامش طباعة، وكل المحتوى داخلها */
-  .mdlp-card{position:relative;width:min(285mm, calc(196mm * var(--ar)));aspect-ratio:var(--ar)}
+  /* البطاقة تملأ الصفحة تمامًا، والصفحة بنسبة القالب نفسها */
+  .mdlp-card{position:absolute;inset:0}
   .mdlp-card>img{width:100%;height:100%;display:block}
-  .mdlp-text{position:absolute;top:14%;left:31%;right:18%;bottom:33%;display:flex;
+  .mdlp-text{position:absolute;top:13%;left:31%;right:18%;bottom:28%;display:flex;
              flex-direction:column;align-items:center;justify-content:center;text-align:center}
   .mdlp-org{font-size:.86rem;font-weight:600;color:var(--m1);line-height:1.75}
   .mdlp-title{font-family:Amiri,"Noto Naskh Arabic",serif;font-weight:700;font-size:2.65rem;
@@ -293,13 +293,11 @@
                    display:inline-block}
   .mdlp-body .cls{font-size:.9rem;color:var(--m1);font-weight:600;margin-inline-start:-3mm}
   /* سطر التوقيعات داخل البطاقة، في الشريط الصافي أسفل النص */
-  .mdlp-sig{position:absolute;left:12%;right:19%;top:68.5%;height:14%;display:flex;
-            align-items:center;justify-content:space-between;gap:4mm;
+  .mdlp-sig{position:absolute;left:21%;right:40%;top:78%;bottom:11%;display:flex;
+            align-items:flex-end;justify-content:flex-end;
             font-weight:700;color:var(--m3);font-size:.95rem}
-  .mdlp-sig span{display:block;font-size:.78rem;font-weight:500;color:#7A736C;margin-top:.8mm}
   .mdlp-sig .teach{display:flex;align-items:center;gap:2mm}
   .mdlp-sig .stamp{height:13mm;width:auto;flex:none;transform:rotate(-7deg)}
-  .mdlp-sig .brand img{height:9mm;display:block;mix-blend-mode:multiply}
   .mdl-in{position:absolute;inset:14mm 18mm 12mm;display:flex;flex-direction:column;
           align-items:center;text-align:center;z-index:2}
   .mdl-head{position:absolute;top:0;right:0;left:0;display:flex;align-items:flex-start;
@@ -1114,6 +1112,8 @@ const stampImg = (cls = 'stamp') =>
 const CERT_BG = {national: '/static/cert-national.jpg', islamic: '/static/cert-islamic.jpg'};
 const MEDAL_BG = {gold: '/static/cert-medal-gold.jpg', silver: '/static/cert-medal-silver.jpg',
                   bronze: '/static/cert-medal-bronze.jpg'};
+/* نسب القوالب الثلاثة، وتُستعمل لضبط مقاس صفحة الطباعة */
+const MEDAL_AR = {gold: 1.7637, silver: 1.6426, bronze: 1.6317};
 const isMedalTheme = t => t === 'medal' || t === 'medalart';
 
 /* ===== أوسمة الانضباط =====
@@ -1205,9 +1205,6 @@ function medalPicHTML(entry, m, title){
       </div>
       <div class="mdlp-sig">
         <div class="teach">معلمة المادة/ ${esc(m.teacher || '................')}${stampImg()}</div>
-        <div class="brand"><img src="/logo" alt="وزارة التعليم" onerror="this.remove()"></div>
-        <div>مديرة المدرسة/ ${esc(m.principal || '................')}
-          ${m.date ? `<span>التاريخ: ${esc(m.date)}</span>` : ''}</div>
       </div>
     </div>
   </div>`;
@@ -1728,12 +1725,12 @@ function canvasesToImages(node){
     cv.replaceWith(img);
   });
 }
-function printNode(node, landscape, status){
+function printNode(node, landscape, status, pageCSS){
   const area = $('printArea');
   area.innerHTML = ''; area.appendChild(node);
-  $('pageOrient').textContent = landscape
+  $('pageOrient').textContent = pageCSS || (landscape
     ? '@page{size:A4 landscape;margin:6mm 6mm 8mm}'
-    : '@page{size:A4 portrait;margin:8mm 8mm 10mm}';
+    : '@page{size:A4 portrait;margin:8mm 8mm 10mm}');
   document.body.classList.add('printing');
   const cleanup = () => {
     document.body.classList.remove('printing');
@@ -1763,7 +1760,15 @@ $('tk_print').onclick = () => {
   if (!TK_LIST.length) return tkError('لا توجد شهادات لطباعتها.');
   const node = document.createElement('div');
   node.innerHTML = $('tk_certs').innerHTML;
-  printNode(node, true, $('tk_status'));
+  // شهادات الوسام تُطبع بمقاس القالب نفسه حتى لا يبقى بياض حوله
+  let pageCSS = null;
+  if ($('tk_theme').value === 'medal') {
+    const ratios = [...new Set(TK_LIST.map(e => (MEDAL_TIERS[e.tier || $('tk_tier').value]
+                                                 || MEDAL_TIERS.gold).key))]
+      .map(k => MEDAL_AR[k]);
+    pageCSS = `@page{size:297mm ${(297 / Math.min(...ratios)).toFixed(1)}mm;margin:0}`;
+  }
+  printNode(node, true, $('tk_status'), pageCSS);
 };
 $('certPrint').onclick = () => {
   if (!excellentStudents().length) return $('certStatus').textContent = 'لا توجد شهادات لطباعتها في النطاق المختار.';
