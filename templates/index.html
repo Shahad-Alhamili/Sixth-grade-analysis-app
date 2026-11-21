@@ -256,16 +256,50 @@
   .certbg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;z-index:0}
   /* ===== وسام الانضباط =====
      شهادة مرسومة بالكامل، لونها المعدني يتبع درجة الوسام: ذهبي، فضي، برونزي. */
-  .cert[data-theme="medal"]{padding:0;background:#FFFDF9;font-family:"Saudi","El Messiri",sans-serif}
-  .cert[data-theme="medal"][data-tier="gold"]{--m1:#C9A227;--m2:#F2DF96;--m3:#8A6B12;--msoft:#FCF6E4}
-  .cert[data-theme="medal"][data-tier="silver"]{--m1:#8D99A3;--m2:#DFE6EB;--m3:#58626A;--msoft:#F2F5F7}
-  .cert[data-theme="medal"][data-tier="bronze"]{--m1:#AA6A3C;--m2:#E7B288;--m3:#70432A;--msoft:#F9EEE5}
-  .cert[data-theme="medal"] .band-out,.cert[data-theme="medal"] .band-fill,
-  .cert[data-theme="medal"] .band-in,.cert[data-theme="medal"] .band-dash,
-  .cert[data-theme="medal"] .corners,.cert[data-theme="medal"] .deco{display:none}
+  .cert[data-theme="medalart"]{padding:0;background:#FFFDF9;font-family:"Saudi","El Messiri",sans-serif}
+  .cert[data-theme="medalart"][data-tier="gold"]{--m1:#C9A227;--m2:#F2DF96;--m3:#8A6B12;--msoft:#FCF6E4}
+  .cert[data-theme="medalart"][data-tier="silver"]{--m1:#8D99A3;--m2:#DFE6EB;--m3:#58626A;--msoft:#F2F5F7}
+  .cert[data-theme="medalart"][data-tier="bronze"]{--m1:#AA6A3C;--m2:#E7B288;--m3:#70432A;--msoft:#F9EEE5}
+  .cert[data-theme="medalart"] .band-out,.cert[data-theme="medalart"] .band-fill,
+  .cert[data-theme="medalart"] .band-in,.cert[data-theme="medalart"] .band-dash,
+  .cert[data-theme="medalart"] .corners,.cert[data-theme="medalart"] .deco{display:none}
   .mdl-frame{position:absolute;inset:6mm;border:1.1mm solid var(--m1);border-radius:4mm}
   .mdl-frame::before{content:"";position:absolute;inset:2.2mm;border:.35mm solid var(--m1);
                      border-radius:2.5mm;opacity:.55}
+  /* ===== أوسمة الانضباط: القوالب الجاهزة =====
+     صورة القالب تُعرض كاملة بنسبتها الأصلية، والنص يوضع في المساحة الصافية داخلها،
+     ويبقى سطر التوقيعات أسفل الصفحة. */
+  .cert[data-theme="medal"]{padding:6mm 12mm 8mm;background:#fff;display:flex;flex-direction:column;
+                            font-family:"Saudi","El Messiri",sans-serif}
+  .cert[data-theme="medal"][data-tier="gold"]{--m1:#B98E1E;--m3:#7E6210;--ar:1.7382}
+  .cert[data-theme="medal"][data-tier="silver"]{--m1:#7C8894;--m3:#4E5861;--ar:1.6206}
+  .cert[data-theme="medal"][data-tier="bronze"]{--m1:#A4663A;--m3:#6B3F26;--ar:1.6083}
+  .cert[data-theme="medal"] .band-out,.cert[data-theme="medal"] .band-fill,
+  .cert[data-theme="medal"] .band-in,.cert[data-theme="medal"] .band-dash,
+  .cert[data-theme="medal"] .corners,.cert[data-theme="medal"] .deco{display:none}
+  /* عرض البطاقة يُحدَّد بحيث لا يتجاوز ارتفاعها المساحة المتاحة فوق سطر التوقيعات */
+  .mdlp-card{position:relative;width:min(100%, calc(166mm * var(--ar)));margin:0 auto;
+             aspect-ratio:var(--ar)}
+  .mdlp-card>img{width:100%;height:100%;display:block}
+  .mdlp-text{position:absolute;top:20%;left:30%;right:16.5%;bottom:19.5%;display:flex;
+             flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .mdlp-org{font-size:.86rem;font-weight:600;color:var(--m1);line-height:1.75}
+  .mdlp-title{font-family:Amiri,"Noto Naskh Arabic",serif;font-weight:700;font-size:2.65rem;
+              color:var(--m3);line-height:1.35;margin:1.5mm 0 0}
+  .mdlp-body{margin-top:3mm;font-size:1.02rem;color:#36302A;line-height:1.95}
+  .mdlp-body p{margin:0}
+  .mdlp-body .nameline{margin:1.5mm 0}
+  .mdlp-body .name{font-family:Amiri,"Noto Naskh Arabic",serif;font-size:1.72rem;font-weight:700;
+                   color:var(--m3);border-bottom:1.6px dotted var(--m1);padding:0 6mm 1mm;
+                   display:inline-block}
+  .mdlp-body .cls{font-size:.9rem;color:var(--m1);font-weight:600;margin-inline-start:-3mm}
+  .mdlp-foot{margin-top:auto;padding-top:4mm;display:flex;align-items:flex-end;
+             justify-content:space-between;gap:6mm;font-weight:700;color:var(--m3);font-size:1rem}
+  .mdlp-foot span{display:block;font-size:.8rem;font-weight:500;color:#7A736C;margin-top:1mm}
+  .mdlp-foot .teach{display:flex;align-items:center;gap:3mm}
+  .mdlp-foot .stamp{height:18mm;width:auto;transform:rotate(-7deg)}
+  .mdlp-foot .brand{text-align:center;font-weight:500;font-size:.8rem;color:#7A736C;line-height:1.6}
+  .mdlp-foot .brand img{height:12mm;display:block;margin:0 auto 1mm;mix-blend-mode:multiply}
   .mdl-in{position:absolute;inset:14mm 18mm 12mm;display:flex;flex-direction:column;
           align-items:center;text-align:center;z-index:2}
   .mdl-head{position:absolute;top:0;right:0;left:0;display:flex;align-items:flex-start;
@@ -609,7 +643,8 @@
             <option value="rose">وردي</option>
             <option value="teal">تركوازي</option>
             <option value="national">اليوم الوطني (أخضر وذهبي)</option>
-            <option value="medal">وسام الانضباط (أوسمة معدنية)</option>
+            <option value="medal">وسام الانضباط (قوالب جاهزة)</option>
+            <option value="medalart">وسام الانضباط (مرسوم)</option>
           </select>
         </div>
         <div><label>درجة الوسام</label>
@@ -1077,14 +1112,17 @@ const stampImg = (cls = 'stamp') =>
 
 /* قوالب جاهزة تُستخدم كخلفية كاملة بدل الزخارف المرسومة */
 const CERT_BG = {national: '/static/cert-national.jpg', islamic: '/static/cert-islamic.jpg'};
+const MEDAL_BG = {gold: '/static/cert-medal-gold.jpg', silver: '/static/cert-medal-silver.jpg',
+                  bronze: '/static/cert-medal-bronze.jpg'};
+const isMedalTheme = t => t === 'medal' || t === 'medalart';
 
 /* ===== أوسمة الانضباط =====
    ثلاث درجات معدنية. معرّفات التدرجات تحمل اسم الدرجة حتى لا تتداخل شهادات
    درجتين مختلفتين في الصفحة نفسها. */
 const MEDAL_TIERS = {
-  gold:   {key:'gold',   word:'ذهبي',    label:'الوسام الذهبي'},
-  silver: {key:'silver', word:'فضي',     label:'الوسام الفضي'},
-  bronze: {key:'bronze', word:'برونزي',  label:'الوسام البرونزي'},
+  gold:   {key:'gold',   word:'ذهبي',   adj:'الذهبي',   label:'الوسام الذهبي'},
+  silver: {key:'silver', word:'فضي',    adj:'الفضي',    label:'الوسام الفضي'},
+  bronze: {key:'bronze', word:'برونزي', adj:'البرونزي', label:'الوسام البرونزي'},
 };
 /* الكلمات التي تُقبل في عمود الدرجة داخل قائمة الأسماء */
 const TIER_WORDS = {
@@ -1141,7 +1179,8 @@ function medalBody(tier){
   const byTier = {gold: bodies[0], silver: bodies[1], bronze: bodies[2]};
   return byTier[tier] || fallback;
 }
-function medalCertHTML(entry, m, title){
+/* الوسام بالقالب الجاهز: الصورة بنسبتها الأصلية والنص داخل مساحتها الصافية */
+function medalPicHTML(entry, m, title){
   const t = MEDAL_TIERS[entry.tier || $('tk_tier').value] || MEDAL_TIERS.gold;
   const program = $('tk_program').value.trim() || $('tk_program').placeholder.replace('مثال: ', '');
   const cls = $('tk_showClass').checked && entry.class ? `<span class="cls">(${esc(entry.class)})</span>` : '';
@@ -1157,6 +1196,40 @@ function medalCertHTML(entry, m, title){
     return `<p class="${isName ? 'nameline' : ''}">${html}</p>`;
   }).join('');
   return `<div class="cert" data-theme="medal" data-tier="${t.key}">
+    <div class="mdlp-card">
+      <img src="${MEDAL_BG[t.key]}" alt="">
+      <div class="mdlp-text">
+        <div class="mdlp-org">${esc(arabicDigits(m.admin))}<br>${esc(arabicDigits(m.school || ''))}</div>
+        <div class="mdlp-title">${esc(title)} ${esc(t.adj)}</div>
+        <div class="mdlp-body">${body}</div>
+      </div>
+    </div>
+    <div class="mdlp-foot">
+      <div class="teach">معلمة المادة/ ${esc(m.teacher || '................')}${stampImg()}</div>
+      <div class="brand">
+        <img src="/logo" alt="وزارة التعليم" onerror="this.remove()">
+      </div>
+      <div>مديرة المدرسة/ ${esc(m.principal || '................')}
+        ${m.date ? `<span>التاريخ: ${esc(m.date)}</span>` : ''}</div>
+    </div>
+  </div>`;
+}
+function medalCertHTML(entry, m, title){
+  const t = MEDAL_TIERS[entry.tier || $('tk_tier').value] || MEDAL_TIERS.gold;
+  const program = $('tk_program').value.trim() || $('tk_program').placeholder.replace('مثال: ', '');
+  const cls = $('tk_showClass').checked && entry.class ? `<span class="cls">(${esc(entry.class)})</span>` : '';
+  const nameHTML = `<span class="name">${esc(entry.name)}</span>${cls}`;
+  const body = medalBody(t.key).split(/\n+/).map(l => l.trim()).filter(Boolean).map(line => {
+    const isName = line.includes('{الاسم}');
+    const html = esc(line)
+      .replace('{الاسم}', nameHTML)
+      .replace(/\{الفصل\}/g, esc(entry.class || ''))
+      .replace(/\{البرنامج\}/g, esc(program))
+      .replace(/\{الوسام\}/g, esc(t.label))
+      .replace(/\{المدرسة\}/g, esc(arabicDigits(m.school || 'المدرسة')));
+    return `<p class="${isName ? 'nameline' : ''}">${html}</p>`;
+  }).join('');
+  return `<div class="cert" data-theme="medalart" data-tier="${t.key}">
     <div class="mdl-frame"></div>
     <div class="mdl-in">
       <div class="mdl-head">
@@ -1405,7 +1478,7 @@ function tkLine(e){
 /* قائمة الدرجة تخص ثيم الوسام وحده */
 function tkSyncTier(){
   const box = $('tk_tier').closest('div');
-  if (box) box.style.display = $('tk_theme').value === 'medal' ? '' : 'none';
+  if (box) box.style.display = isMedalTheme($('tk_theme').value) ? '' : 'none';
 }
 function tkBodyHTML(entry, m){
   const program = $('tk_program').value.trim() || $('tk_program').placeholder.replace('مثال: ', '');
@@ -1426,8 +1499,9 @@ function tkRender(){
   const m = meta(), theme = $('tk_theme').value;
   const decorStyle = $('tk_decor').value;
   const title = $('tk_title').value.trim() || 'شكر وتقدير';
-  $('tk_certs').innerHTML = TK_LIST.map(e => theme === 'medal'
-    ? medalCertHTML(e, m, title)
+  $('tk_certs').innerHTML = TK_LIST.map(e =>
+      theme === 'medal'    ? medalPicHTML(e, m, title)
+    : theme === 'medalart' ? medalCertHTML(e, m, title)
     : certFrame(theme, m, title, tkBodyHTML(e, m), decorStyle)).join('');
   $('tk_lead').textContent = `${TK_LIST.length} شهادة — صفحة مستقلة لكل طالبة (A4 عرضي).`;
   $('tk_previewPanel').classList.remove('hidden');
